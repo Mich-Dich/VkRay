@@ -1,8 +1,8 @@
-#include "Vulray/Shader.h"
+#include "VkRay/Shader.h"
 
 namespace vr
 {
-    Shader VulrayDevice::CreateShaderFromSPV(const std::vector<uint32_t>& spv)
+    Shader VkRayDevice::CreateShaderFromSPV(const std::vector<uint32_t> &spv)
     {
         Shader outShader = {};
         if (spv.empty())
@@ -16,12 +16,12 @@ namespace vr
         return outShader;
     }
 
-    void VulrayDevice::DestroyShader(Shader& shader)
+    void VkRayDevice::DestroyShader(Shader &shader)
     {
         mDevice.destroyShaderModule(shader.Module);
     }
 
-    vk::ShaderModule VulrayDevice::CreateShaderModule(const std::vector<uint32_t>& spvCode)
+    vk::ShaderModule VkRayDevice::CreateShaderModule(const std::vector<uint32_t> &spvCode)
     {
         // create shader module
         auto shaderModuleCreateInfo =

@@ -1,6 +1,6 @@
-#include "Vulray/AccelStruct.h"
+#include "VkRay/AccelStruct.h"
 
-#include "Vulray/VulrayDevice.h"
+#include "VkRay/VkRay_device.h"
 
 namespace vr
 {
@@ -9,7 +9,7 @@ namespace vr
     // BLAS FUCNTIONS
     //--------------------------------------------------------------------------------------
 
-    std::pair<BLASHandle, BLASBuildInfo> VulrayDevice::CreateBLAS(const BLASCreateInfo& info)
+    std::pair<BLASHandle, BLASBuildInfo> VkRayDevice::CreateBLAS(const BLASCreateInfo &info)
     {
         BLASBuildInfo outBuildInfo = {};
         BLASHandle outAccel = {};
@@ -81,9 +81,9 @@ namespace vr
         return std::make_pair(outAccel, outBuildInfo);
     }
 
-    void VulrayDevice::BuildBLAS(const std::vector<BLASBuildInfo>& buildInfos, vk::CommandBuffer cmdBuf)
+    void VkRayDevice::BuildBLAS(const std::vector<BLASBuildInfo> &buildInfos, vk::CommandBuffer cmdBuf)
     {
-        std::vector<vk::AccelerationStructureBuildRangeInfoKHR*> pBuildRangeInfos;
+        std::vector<vk::AccelerationStructureBuildRangeInfoKHR *> pBuildRangeInfos;
         std::vector<vk::AccelerationStructureBuildGeometryInfoKHR> buildGeometryInfos;
         pBuildRangeInfos.reserve(buildInfos.size());
         buildGeometryInfos.reserve(buildInfos.size());
@@ -99,7 +99,7 @@ namespace vr
                                               mDynLoader);
     }
 
-    BLASBuildInfo VulrayDevice::UpdateBLAS(BLASUpdateInfo& updateInfo)
+    BLASBuildInfo VkRayDevice::UpdateBLAS(BLASUpdateInfo &updateInfo)
     {
         assert(updateInfo.NewGeometryAddresses.size() == updateInfo.SourceBuildInfo.GeometryCount &&
                "The number of new geometry addresses must match the number of geometries in the source build info");
@@ -151,20 +151,21 @@ namespace vr
         return outBuildInfo;
     }
 
-    CompactionRequest VulrayDevice::RequestCompaction(const std::vector<BLASHandle*>& sourceBLAS)
+    CompactionRequest VkRayDevice::RequestCompaction(const std::vector<BLASHandle *> &sourceBLAS)
     {
         CompactionRequest outRequest = {};
 
         auto createInfo = vk::QueryPoolCreateInfo()
                               .setQueryType(vk::QueryType::eAccelerationStructureCompactedSizeKHR)
                               .setQueryCount(sourceBLAS.size());
-        for (auto& blas : sourceBLAS) outRequest.SourceBLAS.push_back(blas->AccelerationStructure);
+        for (auto &blas : sourceBLAS)
+            outRequest.SourceBLAS.push_back(blas->AccelerationStructure);
         outRequest.CompactionQueryPool = mDevice.createQueryPool(createInfo);
 
         return outRequest;
     }
 
-    std::vector<uint64_t> VulrayDevice::GetCompactionSizes(CompactionRequest& request, vk::CommandBuffer cmdBuf)
+    std::vector<uint64_t> VkRayDevice::GetCompactionSizes(CompactionRequest &request, vk::CommandBuffer cmdBuf)
     {
         uint32_t blasCount = request.SourceBLAS.size();
 
@@ -189,7 +190,7 @@ namespace vr
         return std::vector<uint64_t>(); // return empty vector
     }
 
-    std::vector<BLASHandle> VulrayDevice::CompactBLAS(CompactionRequest& request, const std::vector<uint64_t>& sizes,
+    std::vector<BLASHandle> VkRayDevice::CompactBLAS(CompactionRequest &request, const std::vector<uint64_t> &sizes,
                                                       vk::CommandBuffer cmdBuf)
     {
         uint32_t blasCount = request.SourceBLAS.size();
@@ -228,8 +229,8 @@ namespace vr
         return newBLASToReturn;
     }
 
-    std::vector<BLASHandle> VulrayDevice::CompactBLAS(CompactionRequest& request, const std::vector<uint64_t>& sizes,
-                                                      std::vector<BLASHandle*> oldBLAS, vk::CommandBuffer cmdBuf)
+    std::vector<BLASHandle> VkRayDevice::CompactBLAS(CompactionRequest &request, const std::vector<uint64_t> &sizes,
+                                                      std::vector<BLASHandle *> oldBLAS, vk::CommandBuffer cmdBuf)
     {
         uint32_t blasCount = request.SourceBLAS.size();
         std::vector<BLASHandle> oldBLASToReturn(blasCount);
@@ -271,7 +272,7 @@ namespace vr
         return oldBLASToReturn;
     }
 
-    AllocatedBuffer VulrayDevice::CreateScratchBufferFromBuildInfos(std::vector<BLASBuildInfo>& buildInfos)
+    AllocatedBuffer VkRayDevice::CreateScratchBufferFromBuildInfos(std::vector<BLASBuildInfo> &buildInfos)
     {
         uint32_t scratchSize = GetScratchBufferSize(buildInfos);
 
@@ -282,7 +283,7 @@ namespace vr
         return outScratchBuffer;
     }
 
-    AllocatedBuffer VulrayDevice::CreateScratchBufferFromBuildInfo(BLASBuildInfo& buildInfo)
+    AllocatedBuffer VkRayDevice::CreateScratchBufferFromBuildInfo(BLASBuildInfo &buildInfo)
     {
         uint32_t scratchSize = buildInfo.BuildGeometryInfo.mode == vk::BuildAccelerationStructureModeKHR::eBuild
                                    ? buildInfo.BuildSizes.buildScratchSize
@@ -295,16 +296,16 @@ namespace vr
         return outScratchBuffer;
     }
 
-    void VulrayDevice::BindScratchAdressToBuildInfo(vk::DeviceAddress scratchAddr, BLASBuildInfo& buildInfo)
+    void VkRayDevice::BindScratchAdressToBuildInfo(vk::DeviceAddress scratchAddr, BLASBuildInfo &buildInfo)
     {
         buildInfo.BuildGeometryInfo.setScratchData(
             AlignUp(scratchAddr, (uint64_t)mAccelProperties.minAccelerationStructureScratchOffsetAlignment));
     }
 
-    uint32_t VulrayDevice::GetScratchBufferSize(const std::vector<BLASBuildInfo>& buildInfos)
+    uint32_t VkRayDevice::GetScratchBufferSize(const std::vector<BLASBuildInfo> &buildInfos)
     {
         uint32_t scratchSize = 0;
-        for (auto& info : buildInfos)
+        for (auto &info : buildInfos)
         {
             vk::BuildAccelerationStructureModeKHR mode = info.BuildGeometryInfo.mode;
             if (mode == vk::BuildAccelerationStructureModeKHR::eBuild)
@@ -319,11 +320,11 @@ namespace vr
         return scratchSize;
     }
 
-    void VulrayDevice::BindScratchBufferToBuildInfos(const vr::AllocatedBuffer& buffer,
-                                                     std::vector<BLASBuildInfo>& buildInfos)
+    void VkRayDevice::BindScratchBufferToBuildInfos(const vr::AllocatedBuffer &buffer,
+                                                     std::vector<BLASBuildInfo> &buildInfos)
     {
         vk::DeviceAddress scratchDataAddr = buffer.DevAddress;
-        for (auto& info : buildInfos)
+        for (auto &info : buildInfos)
         {
             vk::BuildAccelerationStructureModeKHR mode = info.BuildGeometryInfo.mode;
             BindScratchAdressToBuildInfo(scratchDataAddr, info);
@@ -340,7 +341,7 @@ namespace vr
     // TLAS FUCNTIONS
     //--------------------------------------------------------------------------------------
 
-    std::pair<TLASHandle, TLASBuildInfo> VulrayDevice::CreateTLAS(const TLASCreateInfo& info)
+    std::pair<TLASHandle, TLASBuildInfo> VkRayDevice::CreateTLAS(const TLASCreateInfo &info)
     {
         TLASHandle outAccel = {};
         TLASBuildInfo outBuildInfo = {};
@@ -405,7 +406,7 @@ namespace vr
         return std::make_pair(outAccel, outBuildInfo);
     }
 
-    void VulrayDevice::BuildTLAS(TLASBuildInfo& buildInfo, const AllocatedBuffer& InstanceBuffer,
+    void VkRayDevice::BuildTLAS(TLASBuildInfo &buildInfo, const AllocatedBuffer &InstanceBuffer,
                                  uint32_t instanceCount, vk::CommandBuffer cmdBuf)
     {
 
@@ -413,13 +414,13 @@ namespace vr
 
         buildInfo.Geometry->geometry.instances.data = InstanceBuffer.DevAddress;
 
-        auto* pBuildRangeInfo = &buildInfo.RangeInfo;
+        auto *pBuildRangeInfo = &buildInfo.RangeInfo;
 
         // Build the acceleration structure
         cmdBuf.buildAccelerationStructuresKHR(1, &buildInfo.BuildGeometryInfo, &pBuildRangeInfo, mDynLoader);
     }
 
-    std::pair<TLASHandle, TLASBuildInfo> VulrayDevice::UpdateTLAS(TLASHandle& oldTLAS, TLASBuildInfo& oldBuildInfo,
+    std::pair<TLASHandle, TLASBuildInfo> VkRayDevice::UpdateTLAS(TLASHandle &oldTLAS, TLASBuildInfo &oldBuildInfo,
                                                                   bool destroyOld)
     {
         TLASHandle outAccel = oldTLAS;
@@ -449,17 +450,17 @@ namespace vr
         return std::make_pair(outAccel, outBuildInfo);
     }
 
-    void VulrayDevice::BindScratchAdressToBuildInfo(vk::DeviceAddress scratchAddr, TLASBuildInfo& buildInfo)
+    void VkRayDevice::BindScratchAdressToBuildInfo(vk::DeviceAddress scratchAddr, TLASBuildInfo &buildInfo)
     {
         buildInfo.BuildGeometryInfo.setScratchData(
             AlignUp(scratchAddr, (uint64_t)mAccelProperties.minAccelerationStructureScratchOffsetAlignment));
     }
 
-    void VulrayDevice::BindScratchBufferToBuildInfos(const vr::AllocatedBuffer& buffer,
-                                                     std::vector<TLASBuildInfo>& buildInfos)
+    void VkRayDevice::BindScratchBufferToBuildInfos(const vr::AllocatedBuffer &buffer,
+                                                     std::vector<TLASBuildInfo> &buildInfos)
     {
         vk::DeviceAddress scratchDataAddr = buffer.DevAddress;
-        for (auto& info : buildInfos)
+        for (auto &info : buildInfos)
         {
             vk::BuildAccelerationStructureModeKHR mode = info.BuildGeometryInfo.mode;
             BindScratchAdressToBuildInfo(scratchDataAddr, info);
@@ -472,10 +473,10 @@ namespace vr
         }
     }
 
-    uint32_t VulrayDevice::GetScratchBufferSize(const std::vector<TLASBuildInfo>& buildInfos)
+    uint32_t VkRayDevice::GetScratchBufferSize(const std::vector<TLASBuildInfo> &buildInfos)
     {
         uint32_t scratchSize = 0;
-        for (auto& info : buildInfos)
+        for (auto &info : buildInfos)
         {
             vk::BuildAccelerationStructureModeKHR mode = info.BuildGeometryInfo.mode;
             if (mode == vk::BuildAccelerationStructureModeKHR::eBuild)
@@ -488,7 +489,7 @@ namespace vr
         return scratchSize;
     }
 
-    AllocatedBuffer VulrayDevice::CreateScratchBufferFromBuildInfos(std::vector<TLASBuildInfo>& buildInfos)
+    AllocatedBuffer VkRayDevice::CreateScratchBufferFromBuildInfos(std::vector<TLASBuildInfo> &buildInfos)
     {
         uint32_t scratchSize = GetScratchBufferSize(buildInfos);
 
@@ -499,7 +500,7 @@ namespace vr
         return outScratchBuffer;
     }
 
-    AllocatedBuffer VulrayDevice::CreateScratchBufferFromBuildInfo(TLASBuildInfo& buildInfo)
+    AllocatedBuffer VkRayDevice::CreateScratchBufferFromBuildInfo(TLASBuildInfo &buildInfo)
     {
         uint32_t scratchSize = buildInfo.BuildGeometryInfo.mode == vk::BuildAccelerationStructureModeKHR::eBuild
                                    ? buildInfo.BuildSizes.buildScratchSize
@@ -512,7 +513,7 @@ namespace vr
         return outScratchBuffer;
     }
 
-    void VulrayDevice::AddAccelerationBuildBarrier(vk::CommandBuffer cmdBuf)
+    void VkRayDevice::AddAccelerationBuildBarrier(vk::CommandBuffer cmdBuf)
     {
         // accel build barrier for for next build
         auto barrier = vk::MemoryBarrier()
@@ -524,55 +525,56 @@ namespace vr
                                &barrier, 0, nullptr, 0, nullptr);
     }
 
-    void VulrayDevice::DestroyBLAS(std::vector<BLASHandle>& blas)
+    void VkRayDevice::DestroyBLAS(std::vector<BLASHandle> &blas)
     {
-        for (auto& b : blas)
+        for (auto &b : blas)
         {
             mDevice.destroyAccelerationStructureKHR(b.AccelerationStructure, nullptr, mDynLoader);
             DestroyBuffer(b.Buffer);
         }
     }
 
-    void VulrayDevice::DestroyBLAS(BLASHandle& blas)
+    void VkRayDevice::DestroyBLAS(BLASHandle &blas)
     {
         mDevice.destroyAccelerationStructureKHR(blas.AccelerationStructure, nullptr, mDynLoader);
         DestroyBuffer(blas.Buffer);
     }
 
-    void VulrayDevice::DestroyTLAS(TLASHandle& tlas)
+    void VkRayDevice::DestroyTLAS(TLASHandle &tlas)
     {
         mDevice.destroyAccelerationStructureKHR(tlas.AccelerationStructure, nullptr, mDynLoader);
         DestroyBuffer(tlas.Buffer);
     }
 
-    void VulrayDevice::DestroyAccelerationStructure(const vk::AccelerationStructureKHR& accel)
+    void VkRayDevice::DestroyAccelerationStructure(const vk::AccelerationStructureKHR &accel)
     {
         mDevice.destroyAccelerationStructureKHR(accel, nullptr, mDynLoader);
     }
 
-    vk::AccelerationStructureGeometryDataKHR ConvertToVulkanGeometry(const GeometryData& geom)
+    vk::AccelerationStructureGeometryDataKHR ConvertToVulkanGeometry(const GeometryData &geom)
     {
         vk::AccelerationStructureGeometryDataKHR outGeom = {};
 
         switch (geom.Type)
         {
-        case vk::GeometryTypeKHR::eTriangles:
-        {
-            return outGeom.setTriangles(vk::AccelerationStructureGeometryTrianglesDataKHR()
-                                            .setVertexFormat(geom.VertexFormat)
-                                            .setVertexData(geom.DataAddresses.VertexDevAddress)
-                                            .setVertexStride(geom.Stride)
-                                            .setMaxVertex(geom.PrimitiveCount * 3) // 3 vertices per triangle
-                                            .setIndexType(geom.IndexFormat)
-                                            .setIndexData(geom.DataAddresses.IndexDevAddress)
-                                            .setTransformData(geom.DataAddresses.TransformDevAddress));
-        }
-        case vk::GeometryTypeKHR::eAabbs:
-        {
-            return outGeom.setAabbs(vk::AccelerationStructureGeometryAabbsDataKHR()
-                                        .setData(geom.DataAddresses.AABBDevAddress)
-                                        .setStride(geom.Stride));
-        }
+            case vk::GeometryTypeKHR::eTriangles:
+            {
+                return outGeom.setTriangles(vk::AccelerationStructureGeometryTrianglesDataKHR()
+                                                .setVertexFormat(geom.VertexFormat)
+                                                .setVertexData(geom.DataAddresses.VertexDevAddress)
+                                                .setVertexStride(geom.Stride)
+                                                .setMaxVertex(geom.PrimitiveCount * 3) // 3 vertices per triangle
+                                                .setIndexType(geom.IndexFormat)
+                                                .setIndexData(geom.DataAddresses.IndexDevAddress)
+                                                .setTransformData(geom.DataAddresses.TransformDevAddress));
+            }
+            case vk::GeometryTypeKHR::eAabbs:
+            {
+                return outGeom.setAabbs(vk::AccelerationStructureGeometryAabbsDataKHR()
+                                            .setData(geom.DataAddresses.AABBDevAddress)
+                                            .setStride(geom.Stride));
+            }
+            default: break;
         }
         return outGeom;
     }

@@ -1,42 +1,51 @@
-#include "Vulray/VulkanBuilder/VulkanBuilder.h"
 
-#include "VkBootstrap.h"
+#include <GLFW/glfw3.h>
+#include <VkBootstrap.h>
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL VulrayVulkanDebugCback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                                             VkDebugUtilsMessageTypeFlagsEXT messageType,
-                                                             const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                                                             void* pUserData);
+#include "VkRay/VulkanBuilder/VulkanBuilder.h"
 
-namespace vr
-{
 
-    struct _BuilderVKBStructs
-    {
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL VkRayVulkanDebugCback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
+
+
+namespace vr {
+
+
+    struct _BuilderVKBStructs {
+
         vkb::Instance Instance;
         vkb::PhysicalDevice PhysicalDevice;
         vkb::Device Device;
     };
+
+
     static std::vector<const char*> RayTracingExtensions = {
         VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,     VK_KHR_RAY_QUERY_EXTENSION_NAME,
         VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,   VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,
         VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME, // required by accel struct extension
         VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME,
-        VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME, // Required by Vulray if using Descriptors that vulray creates
+        VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME, // Required by VkRay if using Descriptors that VkRay creates
     };
 
-    std::vector<const char*> GetRequiredExtensionsForVulray()
+
+    std::vector<const char*> GetRequiredExtensionsForVkRay()
     {
         return RayTracingExtensions;
     }
+
 
     VulkanBuilder::VulkanBuilder()
     {
         _StructData = std::make_shared<_BuilderVKBStructs>();
     }
 
+
     VulkanBuilder::~VulkanBuilder()
     {
     }
+
 
     InstanceWrapper VulkanBuilder::CreateInstance()
     {
@@ -47,14 +56,14 @@ namespace vr
         for (auto& ext : InstanceExtensions) instBuilder.enable_extension(ext);
         for (auto& layer : InstanceLayers) instBuilder.enable_layer(layer);
 
-        // required extensions by Vulray
+        // required extensions by VkRay
         instBuilder.enable_extension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
         if (EnableDebug)
         {
             instBuilder.request_validation_layers()
                 .set_debug_callback_user_data_pointer(DebugCallbackUserData)
-                .set_debug_callback(DebugCallback == nullptr ? VulrayVulkanDebugCback : DebugCallback)
+                .set_debug_callback(DebugCallback == nullptr ? VkRayVulkanDebugCback : DebugCallback)
                 .set_debug_messenger_severity(
                     (VkDebugUtilsMessageSeverityFlagsEXT)(vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
                                                           vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
@@ -79,6 +88,16 @@ namespace vr
 
         return {returnStructs.instance, returnStructs.debug_messenger};
     }
+
+
+    // void add_glfw_extensions(InstanceWrapper& builder) {
+
+    //     uint32_t count;
+    //     const char** extensions = glfwGetRequiredInstanceExtensions(&count);    // Get the required extensions
+    //     for (uint32_t i = 0; i < count; i++)                                    // Add the extensions to the builder
+    //         builder.InstanceExtensions.push_back(extensions[i]);
+    // }
+
 
     vk::PhysicalDevice VulkanBuilder::PickPhysicalDevice(vk::SurfaceKHR surface)
     {
@@ -142,6 +161,7 @@ namespace vr
         return returnStruct.physical_device;
     }
 
+
     vk::Device VulkanBuilder::CreateDevice()
     {
         vkb::PhysicalDevice& physDev = reinterpret_cast<_BuilderVKBStructs*>(_StructData.get())->PhysicalDevice;
@@ -161,6 +181,7 @@ namespace vr
 
         return dev.device;
     }
+
 
     CommandQueues VulkanBuilder::GetQueues()
     {
@@ -256,18 +277,21 @@ namespace vr
         }
         VULRAY_LOG_WARNING("Called Instance::DestroyInstance with invalid vk::Instance");
     }
+
+
     void InstanceWrapper::DestroyInstance(InstanceWrapper instance)
     {
 
         InstanceWrapper::DestroyInstance(instance.InstanceHandle, instance.DebugMessenger);
     }
 
-    SwapchainBuilder::SwapchainBuilder(vk::Device dev, vk::PhysicalDevice physdev, vk::SurfaceKHR surf,
-                                       uint32_t gfxQueueidx, uint32_t presentQueueidx)
+
+    SwapchainBuilder::SwapchainBuilder(vk::Device dev, vk::PhysicalDevice physdev, vk::SurfaceKHR surf, uint32_t gfxQueueidx, uint32_t presentQueueidx)
         : Device(dev), PhysicalDevice(physdev), Surface(surf), GraphicsQueueIndex(gfxQueueidx),
           PresentQueueIndex(presentQueueidx)
     {
     }
+
 
     SwapchainResources SwapchainBuilder::BuildSwapchain(vk::SwapchainKHR oldswapchain)
     {
@@ -352,23 +376,25 @@ namespace vr
                 (vk::Extent2D)swapchain.extent};
     }
 
+
     void SwapchainBuilder::DestroySwapchain(vk::Device device, const SwapchainResources& res)
     {
         device.destroySwapchainKHR(res.SwapchainHandle);
 
         for (auto i : res.SwapchainImageViews) device.destroyImageView(i);
     }
+
+
     void SwapchainBuilder::DestroySwapchainResources(vk::Device device, const SwapchainResources& res)
     {
         for (auto i : res.SwapchainImageViews) device.destroyImageView(i);
     }
+
 } // namespace vr
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL VulrayVulkanDebugCback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                                             VkDebugUtilsMessageTypeFlagsEXT messageType,
-                                                             const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                                                             void* pUserData)
-{
+static VKAPI_ATTR VkBool32 VKAPI_CALL VkRayVulkanDebugCback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
+
     std::string msgHead = "[Vulkan][";
     const char* msgSeverity = vkb::to_string_message_severity(messageSeverity);
     const char* msgType = vkb::to_string_message_type(messageType);
@@ -386,6 +412,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL VulrayVulkanDebugCback(VkDebugUtilsMessage
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
         VULRAY_FLOG_ERROR("[Vulkan][%s][%s]: %s", msgType, msgSeverity, pCallbackData->pMessage);
         break;
+    default: break;
     }
 
     return VK_FALSE;

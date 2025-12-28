@@ -2,11 +2,11 @@
 
 namespace vr
 {
-    /// @brief Structure of a Buffer used for calls with Vulray
+    /// @brief Structure of a Buffer used for calls with VkRay
     struct AllocatedBuffer
     {
-        /// @brief The allocation for the buffer, if this is null, the buffer is not allocated by Vulray
-        /// @note If this is not null, the buffer is allocated by Vulray and should be freed by calling
+        /// @brief The allocation for the buffer, if this is null, the buffer is not allocated by VkRay
+        /// @note If this is not null, the buffer is allocated by VkRay and should be freed by calling
         /// DestroyBuffer(...) If the buffer is allocated by the user, they do not need to set this field.
         VmaAllocation Allocation = nullptr;
 
@@ -29,11 +29,11 @@ namespace vr
         vk::Format Format = vk::Format::eUndefined;
     };
 
-    /// @brief Structure of an Image, to use with Vulray
+    /// @brief Structure of an Image, to use with VkRay
     struct AllocatedImage
     {
-        /// @brief The allocation for the image, if this is null, the image is not allocated by Vulray
-        /// @note If this is not null, the image is allocated by Vulray and should be freed by calling DestroyImage(...)
+        /// @brief The allocation for the image, if this is null, the image is not allocated by VkRay
+        /// @note If this is not null, the image is allocated by VkRay and should be freed by calling DestroyImage(...)
         /// If the buffer is allocated by the user, they do not need to set this field.
         VmaAllocation Allocation = nullptr;
 
@@ -47,7 +47,7 @@ namespace vr
         uint64_t Size = 0;
     };
 
-    /// @brief Structure of an Image, to use with Vulray
+    /// @brief Structure of an Image, to use with VkRay
     /// @note Primarily used for images for DescriptorSets
     struct AccessibleImage
     {

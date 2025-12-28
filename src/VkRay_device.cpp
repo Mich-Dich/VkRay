@@ -1,11 +1,11 @@
-#include "Vulray/VulrayDevice.h"
+#include "VkRay/VkRay_device.h"
 
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
 
 namespace vr
 {
-    VulrayDevice::VulrayDevice(vk::Instance inst, vk::Device dev, vk::PhysicalDevice physDev, VmaAllocator allocator)
+    VkRayDevice::VkRayDevice(vk::Instance inst, vk::Device dev, vk::PhysicalDevice physDev, VmaAllocator allocator)
         : mInstance(inst), mDevice(dev), mPhysicalDevice(physDev), mVMAllocator(allocator)
     {
 
@@ -40,9 +40,10 @@ namespace vr
         mUserSuppliedAllocator = false;
     }
 
-    VulrayDevice::~VulrayDevice()
+    VkRayDevice::~VkRayDevice()
     {
         if (!mUserSuppliedAllocator)
             vmaDestroyAllocator(mVMAllocator);
     }
+
 } // namespace vr

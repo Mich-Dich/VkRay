@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vulray/Shader.h"
+#include "VkRay/Shader.h"
 
 namespace vr
 {
@@ -49,7 +49,7 @@ namespace vr
         std::vector<Shader> CallableShaders = {};
 
         /// @brief Pipeline library that contains all the shaders in the collection
-        /// Filled by Vulray when creating the pipeline library.
+        /// Filled by VkRay when creating the pipeline library.
         /// @note Doesn't need to be destroyed, because it is destroyed when the pipeline it is linked to is destroyed
         vk::Pipeline CollectionPipeline = nullptr;
 

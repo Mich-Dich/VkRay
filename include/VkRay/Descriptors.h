@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vulray/Buffer.h"
+#include "VkRay/Buffer.h"
 
 namespace vr
 {
@@ -59,12 +59,11 @@ namespace vr
         /// @param dynamicArraySize If this is non-zero, the array is dynamic and this is the size of the array that you
         /// want to be used. pItems must have dynamicArraySize many items
         DescriptorItem(uint32_t binding, vk::DescriptorType type, vk::ShaderStageFlags stageFlags, uint32_t ArraySize,
-                       void* pItems = nullptr, uint32_t dynamicArraySize = 0)
+                       void *pItems = nullptr, uint32_t dynamicArraySize = 0)
             : Type(type), Binding(binding), BindingOffset(0), ArraySize(ArraySize), StageFlags(stageFlags),
-              pResources(
-                  reinterpret_cast<AllocatedBuffer*>(pItems)), // even if the item isn't a buffer, we can use this field
-                                                               // since its a union and a 64-bit address
-              DynamicArraySize(dynamicArraySize)
+              DynamicArraySize(dynamicArraySize),
+              pResources( reinterpret_cast<AllocatedBuffer *>(pItems)) // even if the item isn't a buffer, we can use this field
+                                                                        // since its a union and a 64-bit address
         {
         }
 
@@ -90,7 +89,8 @@ namespace vr
         uint32_t DynamicArraySize = 0;
 
         // all of these are 64 bit pointers, so we can use a union
-        union {
+        union
+        {
             /// @brief Pointer to the resources that will be stored in the descriptor
             AllocatedBuffer* pResources = nullptr;
 
@@ -164,7 +164,7 @@ namespace vr
         /// @brief Gets the sampler of the image
         /// @param resourceIndex The index of the resource to get the sampler of from the array of resources
         /// @return The pointer to the sampler of the image
-        vk::Sampler* GetSampler(uint32_t resourceIndex = 0) const { return &pImages[resourceIndex].Sampler; }
+        vk::Sampler *GetSampler(uint32_t resourceIndex = 0) const { return &pImages[resourceIndex].Sampler; }
 
         /// @brief Gets the buffer info of the buffer
         /// @param resourceIndex The index of the resource to get the buffer info of from the array of resources

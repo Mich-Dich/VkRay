@@ -7,7 +7,7 @@
 namespace vr
 {
 
-    std::vector<const char*> GetRequiredExtensionsForVulray();
+    std::vector<const char *> GetRequiredExtensionsForVkRay();
 
     struct InstanceWrapper
     {
@@ -54,6 +54,8 @@ namespace vr
 
         [[nodiscard]] InstanceWrapper CreateInstance();
 
+        // void add_glfw_extensions(InstanceWrapper& builder);
+
         [[nodiscard]] vk::PhysicalDevice PickPhysicalDevice(vk::SurfaceKHR surface);
 
         [[nodiscard]] vk::Device CreateDevice();
@@ -84,13 +86,15 @@ namespace vr
         // Raytracing extensions are added automatically, no need to add them
         std::vector<const char*> DeviceExtensions;
 
-        // set nullptr to use default Vulray callback
+        // set nullptr to use default VkRay callback
         PFN_vkDebugUtilsMessengerCallbackEXT DebugCallback = nullptr;
         // The pointer to the debug callback user data
-        void* DebugCallbackUserData = nullptr;
+        void *DebugCallbackUserData = nullptr;
 
-      private:
+    private:
+
         std::shared_ptr<void> _StructData = nullptr;
+
     };
 
     // utility to create swapchain, all resources that are created must be destroyed by the client
@@ -124,12 +128,12 @@ namespace vr
         [[nodiscard]] SwapchainResources BuildSwapchain(vk::SwapchainKHR oldswapchain = nullptr);
 
         // This destroys the swapchain supplies
-        static void DestroySwapchain(vk::Device device, const SwapchainResources& res);
+        static void DestroySwapchain(vk::Device device, const SwapchainResources &res);
         // This destroys the swapchain resources, but not the swapchain itself, useful for recreating the swapchain,
         // because the oldswapchain is needed The client has to destroy the swapchain handle
-        static void DestroySwapchainResources(vk::Device device, const SwapchainResources& res);
+        static void DestroySwapchainResources(vk::Device device, const SwapchainResources &res);
 
-      private:
+    private:
         // pointer to vkb::Swapchain
         std::shared_ptr<void> _StructData = nullptr;
     };

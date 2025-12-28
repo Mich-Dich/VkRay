@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Vulray/Buffer.h"
+#include "VkRay/Buffer.h"
 
 namespace vr
 {
-    class VulrayDevice;
+    class VkRayDevice;
     namespace Denoise
     {
         enum class ResourceType : uint32_t
@@ -44,8 +44,8 @@ namespace vr
 
         class DenoiserInterface
         {
-          public:
-            DenoiserInterface(vr::VulrayDevice* device, const DenoiserSettings& settings)
+        public:
+            DenoiserInterface(vr::VkRayDevice *device, const DenoiserSettings &settings)
                 : mDevice(device), mSettings(settings)
             {
             }
@@ -54,7 +54,7 @@ namespace vr
 
             // Delete unwanted constructors
             DenoiserInterface() = delete;
-            DenoiserInterface(const DenoiserInterface&) = delete;
+            DenoiserInterface(const DenoiserInterface &) = delete;
 
             // TODO: Let the user allocate the resources and pass them to the denoiser
 
@@ -66,11 +66,11 @@ namespace vr
 
             /// @brief Get the input resources that are used by the denoiser
             /// @return The input resources
-            virtual const std::vector<Resource>& GetInputResources() const { return mInputResources; }
+            virtual const std::vector<Resource> &GetInputResources() const { return mInputResources; }
 
             /// @brief Get the output resources that are used by the denoiser
             /// @return The internal resources
-            virtual const std::vector<Resource>& GetOutputResources() const { return mOutputResources; }
+            virtual const std::vector<Resource> &GetOutputResources() const { return mOutputResources; }
 
             /// @brief Denoise the image
             /// @param cmdBuffer The command buffer to use for the denoising, must be in recording state and this
@@ -82,19 +82,21 @@ namespace vr
             /// @return The Parameters struct
             /// @warning If a settings struct from another denoiser is requested, it can cause in segmentation faults,
             /// because the memory layout is different
-            template <typename T> T GetDenoiserParams() const { return *(T*)mDenoiserParams; }
+            template <typename T>
+            T GetDenoiserParams() const { return *(T *)mDenoiserParams; }
 
             /// @brief Set the Parameters struct
             /// @tparam T The type of the Parameters struct -> DenoiserX::Parameters
             /// @param params The Parameters struct
             /// @warning If a Parameters struct from another denoiser is set, it can cause in segmentation faults,
             /// because the memory layout is different
-            template <typename T> void SetDenoiserParams(const T& params) { *(T*)mDenoiserParams = params; }
+            template <typename T>
+            void SetDenoiserParams(const T &params) { *(T *)mDenoiserParams = params; }
 
-          protected:
+        protected:
             // Reference to the vulray device that was used to create the denoiser
             // This is needed to destroy the resources
-            vr::VulrayDevice* mDevice;
+            vr::VkRayDevice *mDevice;
 
             DenoiserSettings mSettings;
 
@@ -103,9 +105,9 @@ namespace vr
             std::vector<Resource> mOutputResources;
 
             // pointer to the settings struct, allocated by a derived class
-            void* mDenoiserParams = nullptr;
+            void *mDenoiserParams = nullptr;
 
-            void CreateResources(std::vector<Resource>& resources, vk::ImageUsageFlags inputUsage,
+            void CreateResources(std::vector<Resource> &resources, vk::ImageUsageFlags inputUsage,
                                  vk::ImageUsageFlags outputUsage);
         };
     } // namespace Denoise

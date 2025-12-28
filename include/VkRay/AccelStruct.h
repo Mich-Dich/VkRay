@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vulray/Buffer.h"
+#include "VkRay/Buffer.h"
 
 namespace vr
 {
@@ -13,7 +13,8 @@ namespace vr
         {
         }
 
-        union {
+        union
+        {
             vk::DeviceAddress VertexDevAddress;
             vk::DeviceAddress AABBDevAddress;
         };
@@ -100,7 +101,7 @@ namespace vr
     struct BLASUpdateInfo
     {
         /// @brief Indicates the destination BLAS which is getting updated
-        BLASHandle* SourceBLAS = {};
+        BLASHandle *SourceBLAS = {};
 
         /// @brief This is the build info that was given when creating the destination BLAS, which will be reused
         BLASBuildInfo SourceBuildInfo = {};
@@ -165,6 +166,6 @@ namespace vr
         AllocatedBuffer Buffer = {};
     };
 
-    vk::AccelerationStructureGeometryDataKHR ConvertToVulkanGeometry(const GeometryData& geom);
+    vk::AccelerationStructureGeometryDataKHR ConvertToVulkanGeometry(const GeometryData &geom);
 
 } // namespace vr

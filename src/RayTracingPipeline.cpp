@@ -1,11 +1,11 @@
-#include "Vulray/Shader.h"
-#include "Vulray/VulrayDevice.h"
+#include "VkRay/Shader.h"
+#include "VkRay/VkRay_device.h"
 
 namespace vr
 {
 
     std::pair<std::vector<vk::PipelineShaderStageCreateInfo>, std::vector<vk::RayTracingShaderGroupCreateInfoKHR>>
-    VulrayDevice::GetShaderStagesAndRayTracingGroups(const RayTracingShaderCollection& info)
+    VkRayDevice::GetShaderStagesAndRayTracingGroups(const RayTracingShaderCollection &info)
     {
         std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
         std::vector<vk::RayTracingShaderGroupCreateInfoKHR> shaderGroups;
@@ -13,7 +13,7 @@ namespace vr
         shaderGroups.reserve(1 + info.MissShaders.size() + info.HitGroups.size() + info.CallableShaders.size());
 
         // create ray gen shader groups
-        for (auto& shader : info.RayGenShaders)
+        for (auto &shader : info.RayGenShaders)
         {
             shaderStages.push_back(vk::PipelineShaderStageCreateInfo()
                                        .setStage(vk::ShaderStageFlagBits::eRaygenKHR)
@@ -30,7 +30,7 @@ namespace vr
                                        .setIntersectionShader(VK_SHADER_UNUSED_KHR));
         }
         // create miss shader groups
-        for (auto& shader : info.MissShaders)
+        for (auto &shader : info.MissShaders)
         {
             shaderStages.push_back(vk::PipelineShaderStageCreateInfo()
                                        .setStage(vk::ShaderStageFlagBits::eMissKHR)
@@ -47,7 +47,7 @@ namespace vr
                                        .setIntersectionShader(VK_SHADER_UNUSED_KHR));
         }
         // create hit group shader groups
-        for (auto& hg : info.HitGroups)
+        for (auto &hg : info.HitGroups)
         {
             // null init hit group, will be filled in later
             auto hitGroup = vk::RayTracingShaderGroupCreateInfoKHR()
@@ -103,7 +103,7 @@ namespace vr
             shaderGroups.push_back(hitGroup);
         }
         // create callable shader groups
-        for (auto& shader : info.CallableShaders)
+        for (auto &shader : info.CallableShaders)
         {
             shaderStages.push_back(vk::PipelineShaderStageCreateInfo()
                                        .setStage(vk::ShaderStageFlagBits::eCallableKHR)
@@ -122,18 +122,25 @@ namespace vr
         return std::make_pair(std::move(shaderStages), std::move(shaderGroups));
     }
 
-    std::pair<vk::Pipeline, SBTInfo> VulrayDevice::CreateRayTracingPipeline(
-        const RayTracingShaderCollection& shaderCollection, PipelineSettings& settings, vk::PipelineCreateFlags flags,
+    std::pair<vk::Pipeline, SBTInfo> VkRayDevice::CreateRayTracingPipeline(
+        const RayTracingShaderCollection &shaderCollection, PipelineSettings &settings, vk::PipelineCreateFlags flags,
         vk::DeferredOperationKHR deferredOp)
     {
         vr::SBTInfo sbtInfo = {};
 
         uint32_t pipelineIndex = 0; // index of shader in the compiled pipeline
 
-        for (auto& shader : shaderCollection.RayGenShaders) sbtInfo.RayGenIndices.push_back(pipelineIndex++);
-        for (auto& shader : shaderCollection.MissShaders) sbtInfo.MissIndices.push_back(pipelineIndex++);
-        for (auto& shader : shaderCollection.HitGroups) sbtInfo.HitGroupIndices.push_back(pipelineIndex++);
-        for (auto& shader : shaderCollection.CallableShaders) sbtInfo.CallableIndices.push_back(pipelineIndex++);
+        for ([[maybe_unused]]auto& shader: shaderCollection.RayGenShaders)
+            sbtInfo.RayGenIndices.push_back(pipelineIndex++);
+
+        for ([[maybe_unused]]auto& shader: shaderCollection.MissShaders)
+            sbtInfo.MissIndices.push_back(pipelineIndex++);
+
+        for ([[maybe_unused]]auto& shader: shaderCollection.HitGroups)
+            sbtInfo.HitGroupIndices.push_back(pipelineIndex++);
+
+        for ([[maybe_unused]]auto& shader: shaderCollection.CallableShaders)
+            sbtInfo.CallableIndices.push_back(pipelineIndex++);
 
         auto [shaderStages, shderGroups] = GetShaderStagesAndRayTracingGroups(shaderCollection);
 
@@ -161,8 +168,8 @@ namespace vr
 
         return std::make_pair(res.value, sbtInfo);
     }
-    std::pair<vk::Pipeline, SBTInfo> VulrayDevice::CreateRayTracingPipeline(
-        const std::vector<RayTracingShaderCollection>& shaderCollections, PipelineSettings& settings,
+    std::pair<vk::Pipeline, SBTInfo> VkRayDevice::CreateRayTracingPipeline(
+        const std::vector<RayTracingShaderCollection> &shaderCollections, PipelineSettings &settings,
         vk::PipelineCreateFlags flags, vk::PipelineCache cache, vk::DeferredOperationKHR deferredOp)
     {
         vr::SBTInfo sbtInfo = {};
@@ -172,15 +179,22 @@ namespace vr
 
         uint32_t pipelineIndex = 0; // index of shader in the compiled pipeline
 
-        for (auto& collection : shaderCollections)
+        for (auto &collection : shaderCollections)
         {
             libPipelines.push_back(collection.CollectionPipeline);
             // Assign where in the pipeline the shaders are, for future SBT creation,
             // so opaque handles can be queried for the shader groups
-            for (auto& shader : collection.RayGenShaders) sbtInfo.RayGenIndices.push_back(pipelineIndex++);
-            for (auto& shader : collection.MissShaders) sbtInfo.MissIndices.push_back(pipelineIndex++);
-            for (auto& shader : collection.HitGroups) sbtInfo.HitGroupIndices.push_back(pipelineIndex++);
-            for (auto& shader : collection.CallableShaders) sbtInfo.CallableIndices.push_back(pipelineIndex++);
+            for ([[maybe_unused]]auto& shader : collection.RayGenShaders)
+                sbtInfo.RayGenIndices.push_back(pipelineIndex++);
+
+            for ([[maybe_unused]]auto& shader : collection.MissShaders)
+                sbtInfo.MissIndices.push_back(pipelineIndex++);
+
+            for ([[maybe_unused]]auto& shader : collection.HitGroups)
+                sbtInfo.HitGroupIndices.push_back(pipelineIndex++);
+
+            for ([[maybe_unused]]auto& shader : collection.CallableShaders)
+                sbtInfo.CallableIndices.push_back(pipelineIndex++);
         }
 
         vk::RayTracingPipelineInterfaceCreateInfoKHR interfaceInfo =
@@ -209,9 +223,9 @@ namespace vr
         return std::make_pair(res.value, sbtInfo);
     }
 
-    std::pair<vk::Pipeline, SBTInfo> VulrayDevice::CreateRayTracingPipeline(
-        const std::vector<RayTracingShaderCollection>& shaderCollections, PipelineSettings& settings,
-        SBTInfo& sbtInfoOld, vk::PipelineCreateFlags flags, vk::PipelineCache cache,
+    std::pair<vk::Pipeline, SBTInfo> VkRayDevice::CreateRayTracingPipeline(
+        const std::vector<RayTracingShaderCollection> &shaderCollections, PipelineSettings &settings,
+        SBTInfo &sbtInfoOld, vk::PipelineCreateFlags flags, vk::PipelineCache cache,
         vk::DeferredOperationKHR deferredOp)
     {
         std::pair<vk::Pipeline, SBTInfo> pipelineInfo =
@@ -224,7 +238,7 @@ namespace vr
         return pipelineInfo;
     }
 
-    void VulrayDevice::CreatePipelineLibrary(RayTracingShaderCollection& shaderCollection, PipelineSettings& settings,
+    void VkRayDevice::CreatePipelineLibrary(RayTracingShaderCollection &shaderCollection, PipelineSettings &settings,
                                              vk::PipelineCreateFlags flags, vk::PipelineCache cache,
                                              vk::DeferredOperationKHR deferredOp)
     {
@@ -255,7 +269,7 @@ namespace vr
         shaderCollection.CollectionPipeline = res.value;
     }
 
-    void VulrayDevice::DispatchRays(const vk::Pipeline rtPipeline, const SBTBuffer& buffer, uint32_t width,
+    void VkRayDevice::DispatchRays(const vk::Pipeline rtPipeline, const SBTBuffer &buffer, uint32_t width,
                                     uint32_t height, uint32_t depth, vk::CommandBuffer cmdBuf)
     {
         // dispatch rays

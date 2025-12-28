@@ -1,5 +1,5 @@
 
-#include "Vulray/Denoisers/GaussianBlurDenoiser.h"
+#include "VkRay/Denoisers/GaussianBlurDenoiser.h"
 
 #include "GaussianBlurDenoiser.spv.h"
 
@@ -7,7 +7,7 @@ namespace vr
 {
     namespace Denoise
     {
-        GaussianBlurDenoiser::GaussianBlurDenoiser(vr::VulrayDevice* device, const DenoiserSettings& settings)
+        GaussianBlurDenoiser::GaussianBlurDenoiser(vr::VkRayDevice *device, const DenoiserSettings &settings)
             : DenoiserInterface(device, settings)
         {
             mDenoiserParams = new Parameters();
@@ -27,7 +27,7 @@ namespace vr
 
             mDevice->GetDevice().destroyShaderModule(mShaderModule);
 
-            delete (Parameters*)mDenoiserParams;
+            delete (Parameters *)mDenoiserParams;
         }
 
         void GaussianBlurDenoiser::Init()
@@ -64,7 +64,7 @@ namespace vr
             mPipelineLayout = mDevice->GetDevice().createPipelineLayout(pipelineLayoutInfo);
 
             // From char array to uint32_t array
-            uint32_t* shaderCode = (uint32_t*)&g_GaussianBlurDenoiser_main;
+            uint32_t *shaderCode = (uint32_t *)&g_GaussianBlurDenoiser_main;
 
             // Spirv always has a size that is a multiple of 4
             uint32_t spvSize = sizeof(g_GaussianBlurDenoiser_main);
@@ -112,8 +112,8 @@ namespace vr
             mDevice->BindDescriptorSet(mPipelineLayout, 0, 0, 0, cmdBuffer, vk::PipelineBindPoint::eCompute);
 
             PushConstantData pushData;
-            pushData.Params.Radius = ((Parameters*)mDenoiserParams)->Radius;
-            pushData.Params.Sigma = ((Parameters*)mDenoiserParams)->Sigma;
+            pushData.Params.Radius = ((Parameters *)mDenoiserParams)->Radius;
+            pushData.Params.Sigma = ((Parameters *)mDenoiserParams)->Sigma;
             pushData.Width = mSettings.Width;
             pushData.Height = mSettings.Height;
 

@@ -1,22 +1,22 @@
-#include "Vulray/Descriptors.h"
-#include "Vulray/Shader.h"
-#include "Vulray/VulrayDevice.h"
+#include "VkRay/Descriptors.h"
+#include "VkRay/Shader.h"
+#include "VkRay/VkRay_device.h"
 
 // These functions extract the addrss info / image info from the descriptor item
 // and bind it to the corresponding pointer in the  DescriptorDataEXT struct
 // they also return the size of the descriptor item
-static void GetInfoOfDescriptorItem(const vr::DescriptorItem& item, uint32_t resourceIndex,
-                                    vk::DescriptorAddressInfoEXT* pAddressInfo = nullptr,
-                                    vk::DescriptorImageInfo* pImageInfo = nullptr, vk::Sampler* pSampler = nullptr,
-                                    vk::DescriptorDataEXT* pData = nullptr);
+static void GetInfoOfDescriptorItem(const vr::DescriptorItem &item, uint32_t resourceIndex,
+                                    vk::DescriptorAddressInfoEXT *pAddressInfo = nullptr,
+                                    vk::DescriptorImageInfo *pImageInfo = nullptr, vk::Sampler *pSampler = nullptr,
+                                    vk::DescriptorDataEXT *pData = nullptr);
 
 static size_t GetDescriptorTypeDataSize(vk::DescriptorType type,
-                                        const vk::PhysicalDeviceDescriptorBufferPropertiesEXT& bufferProps);
+                                        const vk::PhysicalDeviceDescriptorBufferPropertiesEXT &bufferProps);
 
 namespace vr
 {
 
-    vk::DescriptorSetLayout VulrayDevice::CreateDescriptorSetLayout(const std::vector<DescriptorItem>& bindings)
+    vk::DescriptorSetLayout VkRayDevice::CreateDescriptorSetLayout(const std::vector<DescriptorItem> &bindings)
     {
 
         bool hasDynamic = false;
@@ -25,7 +25,7 @@ namespace vr
         std::vector<vk::DescriptorSetLayoutBinding> layoutBindings;
         layoutBindings.reserve(bindings.size());
 
-        for (auto& binding : bindings)
+        for (auto &binding : bindings)
         {
             layoutBindings.push_back(binding.GetLayoutBinding());
             if (binding.DynamicArraySize > 0)
@@ -40,7 +40,7 @@ namespace vr
         if (hasDynamic)
         {
             itemFlags.reserve(bindings.size());
-            for (auto& binding : bindings)
+            for (auto &binding : bindings)
             {
                 itemFlags.push_back((vk::DescriptorBindingFlagBits)0);
                 if (binding.DynamicArraySize > 0)
@@ -63,16 +63,16 @@ namespace vr
                 .setPNext(hasDynamic ? &flags : nullptr));
     }
 
-    void VulrayDevice::UpdateDescriptorBuffer(DescriptorBuffer& buffer, const DescriptorItem& item, uint32_t itemIndex,
-                                              DescriptorBufferType type, uint32_t setIndexInBuffer, void* pMappedData)
+    void VkRayDevice::UpdateDescriptorBuffer(DescriptorBuffer &buffer, const DescriptorItem &item, uint32_t itemIndex,
+                                              DescriptorBufferType type, uint32_t setIndexInBuffer, void *pMappedData)
     {
         // offset into the buffer
         uint32_t setOffset = buffer.GetOffsetToSet(setIndexInBuffer);
 
-        char* mappedData =
-            pMappedData == nullptr ? (char*)MapBuffer(buffer.Buffer) + setOffset : (char*)pMappedData + setOffset;
+        char *mappedData =
+            pMappedData == nullptr ? (char *)MapBuffer(buffer.Buffer) + setOffset : (char *)pMappedData + setOffset;
 
-        char* cursor = mappedData + item.BindingOffset; // cursor to the item we want to update
+        char *cursor = mappedData + item.BindingOffset; // cursor to the item we want to update
 
         auto descGetInfo = vk::DescriptorGetInfoEXT().setType(item.Type);
 
@@ -92,17 +92,17 @@ namespace vr
             UnmapBuffer(buffer.Buffer);
     }
 
-    void VulrayDevice::UpdateDescriptorBuffer(DescriptorBuffer& buffer, const std::vector<DescriptorItem>& items,
-                                              DescriptorBufferType type, uint32_t setIndexInBuffer, void* pMappedData)
+    void VkRayDevice::UpdateDescriptorBuffer(DescriptorBuffer &buffer, const std::vector<DescriptorItem> &items,
+                                              DescriptorBufferType type, uint32_t setIndexInBuffer, void *pMappedData)
     {
         // offset into the buffer
         uint32_t setOffset = buffer.GetOffsetToSet(setIndexInBuffer);
 
         // offset into the buffer and the right descriptor set
-        char* mappedData =
-            pMappedData == nullptr ? (char*)MapBuffer(buffer.Buffer) + setOffset : (char*)pMappedData + setOffset;
+        char *mappedData =
+            pMappedData == nullptr ? (char *)MapBuffer(buffer.Buffer) + setOffset : (char *)pMappedData + setOffset;
 
-        char* cursor = mappedData; // cursor to the current item
+        char *cursor = mappedData; // cursor to the current item
 
         auto descGetInfo = vk::DescriptorGetInfoEXT();
 
@@ -135,10 +135,10 @@ namespace vr
             UnmapBuffer(buffer.Buffer);
     }
 
-    void VulrayDevice::UpdateDescriptorBuffer(DescriptorBuffer& buffer, const DescriptorItem& item,
-                                              DescriptorBufferType type, uint32_t setIndexInBuffer, void* pMappedData)
+    void VkRayDevice::UpdateDescriptorBuffer(DescriptorBuffer &buffer, const DescriptorItem &item,
+                                              DescriptorBufferType type, uint32_t setIndexInBuffer, void *pMappedData)
     {
-        char* mappedData = pMappedData == nullptr ? (char*)MapBuffer(buffer.Buffer) : (char*)pMappedData;
+        char *mappedData = pMappedData == nullptr ? (char *)MapBuffer(buffer.Buffer) : (char *)pMappedData;
 
         uint32_t arraySize = item.DynamicArraySize > 0 ? item.DynamicArraySize : item.ArraySize;
 
@@ -153,7 +153,7 @@ namespace vr
             UnmapBuffer(buffer.Buffer);
     }
 
-    void VulrayDevice::BindDescriptorBuffer(const std::vector<DescriptorBuffer>& buffers, vk::CommandBuffer cmdBuf)
+    void VkRayDevice::BindDescriptorBuffer(const std::vector<DescriptorBuffer> &buffers, vk::CommandBuffer cmdBuf)
     {
         std::vector<vk::DescriptorBufferBindingInfoEXT> bindingInfos;
         bindingInfos.reserve(buffers.size());
@@ -161,7 +161,7 @@ namespace vr
         std::vector<uint32_t> bufferIndices;
         bufferIndices.reserve(buffers.size());
 
-        for (int i = 0; i < buffers.size(); i++)
+        for (size_t i = 0; i < buffers.size(); i++)
         {
             bindingInfos.push_back(vk::DescriptorBufferBindingInfoEXT()
                                        .setAddress(buffers[i].Buffer.DevAddress)
@@ -173,14 +173,14 @@ namespace vr
         cmdBuf.bindDescriptorBuffersEXT(bindingInfos, mDynLoader);
     }
 
-    void VulrayDevice::BindDescriptorSet(vk::PipelineLayout layout, uint32_t set, uint32_t bufferIndex,
+    void VkRayDevice::BindDescriptorSet(vk::PipelineLayout layout, uint32_t set, uint32_t bufferIndex,
                                          vk::DeviceSize offset, vk::CommandBuffer cmdBuf,
                                          vk::PipelineBindPoint bindPoint)
     {
         cmdBuf.setDescriptorBufferOffsetsEXT(bindPoint, layout, set, 1, &bufferIndex, &offset, mDynLoader);
     }
 
-    void VulrayDevice::BindDescriptorSet(vk::PipelineLayout layout, uint32_t set, std::vector<uint32_t> bufferIndex,
+    void VkRayDevice::BindDescriptorSet(vk::PipelineLayout layout, uint32_t set, std::vector<uint32_t> bufferIndex,
                                          std::vector<vk::DeviceSize> offset, vk::CommandBuffer cmdBuf,
                                          vk::PipelineBindPoint bindPoint)
     {
@@ -188,7 +188,7 @@ namespace vr
                                              offset.data(), mDynLoader);
     }
 
-    vk::PipelineLayout VulrayDevice::CreatePipelineLayout(const std::vector<vk::DescriptorSetLayout>& descLayouts)
+    vk::PipelineLayout VkRayDevice::CreatePipelineLayout(const std::vector<vk::DescriptorSetLayout> &descLayouts)
     {
         // create pipeline layout
         return mDevice.createPipelineLayout(vk::PipelineLayoutCreateInfo()
@@ -196,7 +196,7 @@ namespace vr
                                                 .setPSetLayouts(descLayouts.data()));
     }
 
-    vk::PipelineLayout VulrayDevice::CreatePipelineLayout(vk::DescriptorSetLayout descLayout)
+    vk::PipelineLayout VkRayDevice::CreatePipelineLayout(vk::DescriptorSetLayout descLayout)
     {
         // create pipeline layout
         return mDevice.createPipelineLayout(vk::PipelineLayoutCreateInfo()
@@ -207,9 +207,9 @@ namespace vr
 
 } // namespace vr
 
-static void GetInfoOfDescriptorItem(const vr::DescriptorItem& item, uint32_t resourceIndex,
-                                    vk::DescriptorAddressInfoEXT* pAddressInfo, vk::DescriptorImageInfo* pImageInfo,
-                                    vk::Sampler* pSampler, vk::DescriptorDataEXT* pData)
+static void GetInfoOfDescriptorItem(const vr::DescriptorItem &item, uint32_t resourceIndex,
+                                    vk::DescriptorAddressInfoEXT *pAddressInfo, vk::DescriptorImageInfo *pImageInfo,
+                                    vk::Sampler *pSampler, vk::DescriptorDataEXT *pData)
 {
     switch (item.Type)
     {
@@ -253,23 +253,34 @@ static void GetInfoOfDescriptorItem(const vr::DescriptorItem& item, uint32_t res
         *pImageInfo = item.GetImageInfo(resourceIndex);
         pData->pStorageImage = pImageInfo;
         break;
+    default: break;
     }
 }
 
 static size_t GetDescriptorTypeDataSize(vk::DescriptorType type,
-                                        const vk::PhysicalDeviceDescriptorBufferPropertiesEXT& bufferProps)
+                                        const vk::PhysicalDeviceDescriptorBufferPropertiesEXT &bufferProps)
 {
     switch (type)
     {
-    case vk::DescriptorType::eUniformBuffer: return bufferProps.uniformBufferDescriptorSize;
-    case vk::DescriptorType::eStorageBuffer: return bufferProps.storageBufferDescriptorSize;
-    case vk::DescriptorType::eAccelerationStructureKHR: return bufferProps.accelerationStructureDescriptorSize;
-    case vk::DescriptorType::eStorageTexelBuffer: return bufferProps.storageTexelBufferDescriptorSize;
-    case vk::DescriptorType::eUniformTexelBuffer: return bufferProps.uniformTexelBufferDescriptorSize;
-    case vk::DescriptorType::eStorageImage: return bufferProps.storageImageDescriptorSize;
-    case vk::DescriptorType::eCombinedImageSampler: return bufferProps.combinedImageSamplerDescriptorSize;
-    case vk::DescriptorType::eSampler: return bufferProps.samplerDescriptorSize;
-    case vk::DescriptorType::eSampledImage: return bufferProps.sampledImageDescriptorSize;
-    default: return 0;
+    case vk::DescriptorType::eUniformBuffer:
+        return bufferProps.uniformBufferDescriptorSize;
+    case vk::DescriptorType::eStorageBuffer:
+        return bufferProps.storageBufferDescriptorSize;
+    case vk::DescriptorType::eAccelerationStructureKHR:
+        return bufferProps.accelerationStructureDescriptorSize;
+    case vk::DescriptorType::eStorageTexelBuffer:
+        return bufferProps.storageTexelBufferDescriptorSize;
+    case vk::DescriptorType::eUniformTexelBuffer:
+        return bufferProps.uniformTexelBufferDescriptorSize;
+    case vk::DescriptorType::eStorageImage:
+        return bufferProps.storageImageDescriptorSize;
+    case vk::DescriptorType::eCombinedImageSampler:
+        return bufferProps.combinedImageSamplerDescriptorSize;
+    case vk::DescriptorType::eSampler:
+        return bufferProps.samplerDescriptorSize;
+    case vk::DescriptorType::eSampledImage:
+        return bufferProps.sampledImageDescriptorSize;
+    default:
+        return 0;
     }
 }

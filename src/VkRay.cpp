@@ -1,8 +1,8 @@
-#include "Vulray/Vulray.h"
+#include "VkRay/VkRay.h"
 
 namespace vr
 {
-    VulrayLogCallback LogCallback = nullptr;
+    VkRayLogCallback LogCallback = nullptr;
 
     namespace detail
     {

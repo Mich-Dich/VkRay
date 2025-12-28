@@ -1,4 +1,4 @@
-#include "Vulray/Denoisers/DenoiserInterface.h"
+#include "VkRay/Denoisers/DenoiserInterface.h"
 
 namespace vr::Denoise
 {
@@ -7,17 +7,21 @@ namespace vr::Denoise
         auto vulkanDevice = mDevice->GetDevice();
 
         // lambda to destroy image views and samplers
-        auto destroyImg = [this, vulkanDevice](Resource& resource) {
+        auto destroyImg = [this, vulkanDevice](Resource &resource)
+        {
             vulkanDevice.destroyImageView(resource.AccessImage.View);
             vulkanDevice.destroySampler(resource.AccessImage.Sampler);
             mDevice->DestroyImage(resource.AllocImage);
         };
 
-        for (auto& resource : mInputResources) destroyImg(resource);
-        for (auto& resource : mOutputResources) destroyImg(resource);
-        for (auto& resource : mInternalResources) destroyImg(resource);
+        for (auto &resource : mInputResources)
+            destroyImg(resource);
+        for (auto &resource : mOutputResources)
+            destroyImg(resource);
+        for (auto &resource : mInternalResources)
+            destroyImg(resource);
     }
-    void DenoiserInterface::CreateResources(std::vector<Resource>& resources, vk::ImageUsageFlags inputUsage,
+    void DenoiserInterface::CreateResources(std::vector<Resource> &resources, vk::ImageUsageFlags inputUsage,
                                             vk::ImageUsageFlags outputUsage)
     {
         auto vulkanDevice = mDevice->GetDevice();
@@ -36,7 +40,7 @@ namespace vr::Denoise
                              .setSharingMode(vk::SharingMode::eExclusive)
                              .setInitialLayout(vk::ImageLayout::eUndefined);
 
-        for (auto& resource : resources)
+        for (auto &resource : resources)
         {
             imageInfo.format = resource.Format;
             imageInfo.usage = resource.Usage | ((int)resource.Type & 0b01
