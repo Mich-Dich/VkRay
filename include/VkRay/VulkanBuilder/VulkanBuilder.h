@@ -86,8 +86,8 @@ namespace vr
         // Raytracing extensions are added automatically, no need to add them
         std::vector<const char*> DeviceExtensions;
 
-        // set nullptr to use default VkRay callback
-        PFN_vkDebugUtilsMessengerCallbackEXT DebugCallback = nullptr;
+        PFN_vkDebugUtilsMessengerCallbackEXT DebugCallback = nullptr;                   // set nullptr to use default VkRay callback
+
         // The pointer to the debug callback user data
         void *DebugCallbackUserData = nullptr;
 

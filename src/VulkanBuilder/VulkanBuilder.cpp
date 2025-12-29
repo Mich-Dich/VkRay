@@ -22,11 +22,15 @@ namespace vr {
 
 
     static std::vector<const char*> RayTracingExtensions = {
-        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,     VK_KHR_RAY_QUERY_EXTENSION_NAME,
-        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,   VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,
-        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME, // required by accel struct extension
+        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+        VK_KHR_RAY_QUERY_EXTENSION_NAME,
+        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+        VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,
+        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,         // required by accel struct extension
         VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME,
-        VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME, // Required by VkRay if using Descriptors that VkRay creates
+        VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,            // Required by VkRay if using Descriptors that VkRay creates
+        VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME,        // for independent sets
+        VK_KHR_RAY_TRACING_POSITION_FETCH_EXTENSION_NAME        // for ray tracing position fet
     };
 
 
@@ -112,19 +116,20 @@ namespace vr {
 
         // Enable needed features
         auto raytracingFeatures = vk::PhysicalDeviceRayTracingPipelineFeaturesKHR().setRayTracingPipeline(true);
-
         auto rayqueryFeatures = vk::PhysicalDeviceRayQueryFeaturesKHR().setRayQuery(true);
-
+        auto rayTracingPositionFetchFeatures = vk::PhysicalDeviceRayTracingPositionFetchFeaturesKHR().setRayTracingPositionFetch(true);
+        
         auto accelFeatures = vk::PhysicalDeviceAccelerationStructureFeaturesKHR()
-                                 .setAccelerationStructure(true)
-                                 .setDescriptorBindingAccelerationStructureUpdateAfterBind(true);
+                                .setAccelerationStructure(true)
+                                .setDescriptorBindingAccelerationStructureUpdateAfterBind(true);
 
         auto descbufferFeatures = vk::PhysicalDeviceDescriptorBufferFeaturesEXT()
-                                      .setDescriptorBuffer(true)
-                                      .setDescriptorBufferImageLayoutIgnored(true);
+                                    .setDescriptorBuffer(true)
+                                    .setDescriptorBufferImageLayoutIgnored(true);
 
         physSelector.add_required_extension_features(raytracingFeatures);
         physSelector.add_required_extension_features(rayqueryFeatures);
+        physSelector.add_required_extension_features(rayTracingPositionFetchFeatures);
         physSelector.add_required_extension_features(accelFeatures);
         physSelector.add_required_extension_features(descbufferFeatures);
 
