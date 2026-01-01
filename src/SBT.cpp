@@ -1,6 +1,10 @@
-#include "VkRay/SBT.h"
 
+#include "pch.h"
+
+#include "VkRay/SBT.h"
 #include "VkRay/VkRay_device.h"
+#include "VkRay/Buffer.h"
+
 
 namespace vr
 {
@@ -14,7 +18,7 @@ namespace vr
         auto result = mDevice.getRayTracingShaderGroupHandlesKHR(pipeline, firstGroup, groupCount, size, handles.data(), mDynLoader);
         if (result != vk::Result::eSuccess)
         {
-            VULRAY_LOG_ERROR("GetHandlesForSBTBuffer: Failed to get ray tracing shader group handles");
+            VR_LOG(error, "GetHandlesForSBTBuffer: Failed to get ray tracing shader group handles");
         }
         return handles;
     }
@@ -29,13 +33,13 @@ namespace vr
             mDevice.getRayTracingShaderGroupHandlesKHR(pipeline, firstGroup, groupCount, size, data, mDynLoader);
         if (result != vk::Result::eSuccess)
         {
-            VULRAY_LOG_ERROR("GetHandlesForSBTBuffer: Failed to get ray tracing shader group handles");
+            VR_LOG(error, "GetHandlesForSBTBuffer: Failed to get ray tracing shader group handles");
         }
     }
 
     void VkRayDevice::WriteToSBT(SBTBuffer sbtBuf, ShaderGroup group, uint32_t groupIndex, void *data, uint32_t dataSize, void *mappedData)
     {
-        AllocatedBuffer *buffer = nullptr;
+        allocated_buffer* buffer = nullptr;
         vk::StridedDeviceAddressRegionKHR *addressRegion;
         switch (group)
         {
@@ -58,7 +62,7 @@ namespace vr
         }
         if (!buffer)
         {
-            VULRAY_LOG_ERROR("WriteToSBT: Invalid shader group");
+            VR_LOG(error, "WriteToSBT: Invalid shader group");
             return;
         }
 
@@ -68,7 +72,7 @@ namespace vr
         // make sure the data size is not too large
         if (offset + dataSize > addressRegion->size)
         {
-            VULRAY_LOG_ERROR("WriteToSBT: Data size is too large for shader group");
+            VR_LOG(error, "WriteToSBT: Data size is too large for shader group");
             return;
         }
 
@@ -124,10 +128,14 @@ namespace vr
         // For filling the stride and size of the regions, we don't want to set stride when there is no shader of that
         // type. We didn't do this earlier because we needed to know the size of the shader group handles to reserve
         // space for them.
-        if (rgenCount == 0)     rgenSize = 0;
-        if (missCount == 0)     missSize = 0;
-        if (hitCount == 0)      hitSize = 0;
-        if (callCount == 0)     callSize = 0;
+        if (rgenCount == 0)
+            rgenSize = 0;
+        if (missCount == 0)
+            missSize = 0;
+        if (hitCount == 0)
+            hitSize = 0;
+        if (callCount == 0)
+            callSize = 0;
 
         // fill in offsets for all shader groups
         if (rgenCount > 0)

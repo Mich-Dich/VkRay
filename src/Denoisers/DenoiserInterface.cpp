@@ -1,4 +1,8 @@
+
+#include "../pch.h"
+
 #include "VkRay/Denoisers/DenoiserInterface.h"
+
 
 namespace vr::Denoise
 {

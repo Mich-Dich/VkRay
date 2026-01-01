@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../../src/pch.h"
+
 #include "VkRay/AccelStruct.h"
 #include "VkRay/Descriptors.h"
 #include "VkRay/SBT.h"
@@ -12,18 +14,9 @@
 namespace vr
 {
 
-    // Logging types
-    enum class MessageType
-    {
-        Verbose,
-        Info,
-        Warning,
-        Error
-    };
-
-    class VkRayDevice
-    {
+    class VkRayDevice {
     public:
+
         // @brief Creates a VkRay device to call all VkRay functions
         // @param inst Handle to the Vulkan instance
         // @param dev Handle to the Vulkan device
@@ -35,9 +28,7 @@ namespace vr
 
         ~VkRayDevice();
 
-        // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        // @@@@@@@@@@@@@@@@@@@@@@@@@@ Setter Functions @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        // Setter Functions ===========================================================================================
 
         // @brief Set the VmaPool that will be used to allocate memory internally
         // @param pool The VmaPool that will be used to allocate memory internally, can be nullptr to use the default
@@ -47,9 +38,7 @@ namespace vr
         // @warning If the pool is not created with the correct flags / memory types, then the allocations will fail.
         void SetVmaPool(VmaPool pool) { mCurrentPool = pool; }
 
-        // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        // @@@@@@@@@@@@@@@@@@@@@@@@@@ Getter Functions @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        // Getter Functions ===========================================================================================
 
         // @brief Get the Vulkan device handle
         vk::Device GetDevice() const { return mDevice; }
@@ -134,7 +123,7 @@ namespace vr
         // structure
         // @param instanceCount The number of instances in the InstanceBuffer
         // @param cmdBuf The command buffer that will be used to record the build
-        void BuildTLAS(TLASBuildInfo &buildInfo, const AllocatedBuffer &InstanceBuffer, uint32_t instanceCount,
+        void BuildTLAS(TLASBuildInfo &buildInfo, const allocated_buffer &InstanceBuffer, uint32_t instanceCount,
                        vk::CommandBuffer cmdBuf);
 
         // @brief Updates the acceleration structure
@@ -201,23 +190,23 @@ namespace vr
         // @note This function creates a single scratch buffer for ALL the BLASes in the build infos.
         // If the BLAS is updated regularly, it is recommended to create a separate scratch buffer for the updating
         // BLAS and use the scratch buffer for the updating.
-        [[nodiscard]] AllocatedBuffer CreateScratchBufferFromBuildInfos(std::vector<BLASBuildInfo> &buildInfos);
+        [[nodiscard]] allocated_buffer CreateScratchBufferFromBuildInfos(std::vector<BLASBuildInfo> &buildInfos);
 
         // @brief Binds the scratch buffer to the build info
         // @param scratchBuffer The scratch buffer that will be bound
         // @param buildInfo The build info that will be bound to the scratch buffer
-        [[nodiscard]] AllocatedBuffer CreateScratchBufferFromBuildInfo(BLASBuildInfo &buildInfo);
+        [[nodiscard]] allocated_buffer CreateScratchBufferFromBuildInfo(BLASBuildInfo &buildInfo);
 
         // @brief Creates a SINGLE scratch buffer for building acceleration structure, and binds the scratch buffer to
         // the build info
         // @param buildInfo The build info that will be used to create the scratch buffer
         // @return The scratch buffer
-        [[nodiscard]] AllocatedBuffer CreateScratchBufferFromBuildInfos(std::vector<TLASBuildInfo> &buildInfo);
+        [[nodiscard]] allocated_buffer CreateScratchBufferFromBuildInfos(std::vector<TLASBuildInfo> &buildInfo);
 
         // @brief Binds the scratch buffer to the build info
         // @param scratchBuffer The scratch buffer that will be bound
         // @param buildInfo The build info that will be bound to the scratch buffer
-        [[nodiscard]] AllocatedBuffer CreateScratchBufferFromBuildInfo(TLASBuildInfo &buildInfo);
+        [[nodiscard]] allocated_buffer CreateScratchBufferFromBuildInfo(TLASBuildInfo &buildInfo);
 
         // @brief Binds the scratch buffer to the build infos. Assumes that the whole scratch buffer is used for all
         // the build infos. This function is useful, when you already have a scratch buffer and you want to use it for
@@ -227,7 +216,7 @@ namespace vr
         // @warning This function doesn't check if the scratch buffer is big enough to build the acceleration
         // structure, it is the user's responsibility to check the sizes. and ensure it doesn't overflow, Use
         // GetScratchBufferSize(...) to get required size of the scratch buffer.
-        void BindScratchBufferToBuildInfos(const vr::AllocatedBuffer &buffer, std::vector<BLASBuildInfo> &buildInfos);
+        void BindScratchBufferToBuildInfos(const vr::allocated_buffer &buffer, std::vector<BLASBuildInfo> &buildInfos);
 
         // @brief Binds the scratch buffer to the build infos. Assumes that the whole scratch buffer is used for all
         // the build infos. This function is useful, when you already have a scratch buffer and you want to use it for
@@ -237,7 +226,7 @@ namespace vr
         // @warning This function doesn't check if the scratch buffer is big enough to build the acceleration
         // structure, it is the user's responsibility to check the sizes. and ensure it doesn't overflow, Use
         // GetScratchBufferSize(...) to get required size of the scratch buffer.
-        void BindScratchBufferToBuildInfos(const vr::AllocatedBuffer &buffer, std::vector<TLASBuildInfo> &buildInfos);
+        void BindScratchBufferToBuildInfos(const vr::allocated_buffer &buffer, std::vector<TLASBuildInfo> &buildInfos);
 
         // @brief Binds the scratch buffer to the build info.
         // @param scratchAddr The scratch address that will be bound
@@ -306,9 +295,9 @@ namespace vr
         // 2. By default VmaAllocationCreateInfo::usage is VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, so the memory will be
         // allocated preferentially on the device. This can be overriden by specifying a VmaPool from where the memory
         // will be allocated.
-        [[nodiscard]] AllocatedBuffer CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags bufferUsage,
-                                                   VmaAllocationCreateFlags flags = 0, uint32_t alignment = 0,
-                                                   VmaPool pool = nullptr);
+        [[nodiscard]] allocated_buffer CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags bufferUsage,
+                                                    VmaAllocationCreateFlags flags = 0, uint32_t alignment = 0,
+                                                    VmaPool pool = nullptr);
 
         // @brief Creates a buffer for storing the instances
         // @param instanceCount The number of instances that will be stored in the buffer (not byte size)
@@ -316,12 +305,12 @@ namespace vr
         // @note The buffer is created with the VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT flag, so it is
         // host writable. If you want it in device local memory, you should create a buffer with CreateBuffer(...) and
         // copy the instance data to the device local buffer.
-        [[nodiscard]] AllocatedBuffer CreateInstanceBuffer(uint32_t instanceCount);
+        [[nodiscard]] allocated_buffer CreateInstanceBuffer(uint32_t instanceCount);
 
         // @brief Creates a buffer for storing the scratch data and uses correct alignment / flags
         // @param size The size of the buffer
         // @return The created buffer
-        [[nodiscard]] AllocatedBuffer CreateScratchBuffer(uint32_t size);
+        [[nodiscard]] allocated_buffer CreateScratchBuffer(uint32_t size);
 
         // @brief Creates a buffer for storing the descriptor sets
         // @param layout The descriptor set layout that will be used to create the buffer
@@ -342,7 +331,7 @@ namespace vr
         // device local buffer.
         // @warning This function does not check if the buffers are big enough to copy the data, it is the user's
         // responsibility to check the sizes.
-        void CopyData(AllocatedBuffer src, AllocatedBuffer dst, vk::DeviceSize size, vk::CommandBuffer cmdBuf);
+        void CopyData(allocated_buffer src, allocated_buffer dst, vk::DeviceSize size, vk::CommandBuffer cmdBuf);
 
         // @brief Uploads data to a buffer, via mapping the buffer and memcpy
         // @param alloc The buffer that will be updated, MUST be host visible when created
@@ -354,22 +343,22 @@ namespace vr
         // inefficient to call this function many times
         // @warning Segfault if pointer and size are not valid / out of bounds.
         // VMA assertion if the buffer is not mappable.
-        void UpdateBuffer(AllocatedBuffer alloc, void *data, const vk::DeviceSize size, uint32_t offset = 0);
+        void UpdateBuffer(allocated_buffer alloc, void *data, const vk::DeviceSize size, uint32_t offset = 0);
 
         // @brief Maps the buffer and returns the mapped data
         // @param buffer The buffer that will be mapped
         // @return The mapped data
         // @note The buffer must have been created with the VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT flag
         // or similar flags
-        [[nodiscard]] void *MapBuffer(AllocatedBuffer &buffer);
+        [[nodiscard]] void *MapBuffer(allocated_buffer &buffer);
 
         // @brief Unmaps the buffer
         // @param buffer The buffer that will be unmapped
-        void UnmapBuffer(AllocatedBuffer &buffer);
+        void UnmapBuffer(allocated_buffer &buffer);
 
         // @brief Destroys the buffer
         // @param buffer The buffer that will be destroyed
-        void DestroyBuffer(AllocatedBuffer &buffer);
+        void DestroyBuffer(allocated_buffer &buffer);
 
         // @brief Destroys the image
         // @param img The image that will be destroyed
@@ -404,9 +393,7 @@ namespace vr
         // @param info The ShaderBindingTable including the collection of shaders that will be used to create the
         // shader stages and shader groups
         // @return The shader stages and shader groups that are constructed from the ShaderBindingTable
-        [[nodiscard]] std::pair<std::vector<vk::PipelineShaderStageCreateInfo>,
-                                std::vector<vk::RayTracingShaderGroupCreateInfoKHR>>
-        GetShaderStagesAndRayTracingGroups(const RayTracingShaderCollection &info);
+        [[nodiscard]] std::pair<std::vector<vk::PipelineShaderStageCreateInfo>, std::vector<vk::RayTracingShaderGroupCreateInfoKHR>> GetShaderStagesAndRayTracingGroups(const RayTracingShaderCollection &info);
 
         // @brief Creates a ray tracing pipeline
         // @param shaderCollection The shader collection that will be used to create the pipeline.
@@ -417,10 +404,8 @@ namespace vr
         // @param deferredOp The deferred operation that will be used to create the pipeline, default is nullptr
         // @return The created ray tracing pipeline and the shader binding table info to create the shader binding
         // table
-        [[nodiscard]] std::pair<vk::Pipeline, SBTInfo> CreateRayTracingPipeline(
-            const RayTracingShaderCollection &shaderCollection, PipelineSettings &settings,
-            vk::PipelineCreateFlags flags = vk::PipelineCreateFlagBits::eDescriptorBufferEXT,
-            vk::DeferredOperationKHR deferredOp = nullptr);
+        [[nodiscard]] std::pair<vk::Pipeline, SBTInfo> CreateRayTracingPipeline(const RayTracingShaderCollection &shaderCollection, PipelineSettings &settings,
+            vk::PipelineCreateFlags flags = vk::PipelineCreateFlagBits::eDescriptorBufferEXT,vk::DeferredOperationKHR deferredOp = nullptr);
 
         // @brief Creates a ray tracing pipeline
         // @param shaderCollections The shader collections that will be used to create the pipeline.
@@ -432,10 +417,8 @@ namespace vr
         // @param deferredOp The deferred operation that will be used to create the pipeline, default is nullptr
         // @return The created ray tracing pipeline and the shader binding table info to create the shader binding
         // table
-        [[nodiscard]] std::pair<vk::Pipeline, SBTInfo> CreateRayTracingPipeline(
-            const std::vector<RayTracingShaderCollection> &shaderCollections, PipelineSettings &settings,
-            vk::PipelineCreateFlags flags = vk::PipelineCreateFlagBits::eDescriptorBufferEXT,
-            vk::PipelineCache cache = nullptr, vk::DeferredOperationKHR deferredOp = nullptr);
+        [[nodiscard]] std::pair<vk::Pipeline, SBTInfo> CreateRayTracingPipeline(const std::vector<RayTracingShaderCollection> &shaderCollections, PipelineSettings &settings,
+            vk::PipelineCreateFlags flags = vk::PipelineCreateFlagBits::eDescriptorBufferEXT, vk::PipelineCache cache = nullptr, vk::DeferredOperationKHR deferredOp = nullptr);
 
         // @brief Convenience function that calls CreateRayTracingPipeline(...) and then copies the shader record sizes
         // to the shader binding table info from the old shader binding table info to the new shader binding table
@@ -450,8 +433,7 @@ namespace vr
         // @param deferredOp The deferred operation that will be used to create the pipeline, default is nullptr
         // @return The created ray tracing pipeline and the shader binding table info to create the shader binding
         // table
-        [[nodiscard]] std::pair<vk::Pipeline, SBTInfo> CreateRayTracingPipeline(
-            const std::vector<RayTracingShaderCollection> &shaderCollections, PipelineSettings &settings,
+        [[nodiscard]] std::pair<vk::Pipeline, SBTInfo> CreateRayTracingPipeline(const std::vector<RayTracingShaderCollection> &shaderCollections, PipelineSettings &settings,
             SBTInfo &sbtInfoOld, vk::PipelineCreateFlags flags = vk::PipelineCreateFlagBits::eDescriptorBufferEXT,
             vk::PipelineCache cache = nullptr, vk::DeferredOperationKHR deferredOp = nullptr);
 
@@ -471,9 +453,8 @@ namespace vr
         // @param deferredOp The deferred operation that will be used to create the pipeline library, default is
         // nullptr
         // @return shaderCollection::CollectionPipeline is set to the created pipeline library
-        void CreatePipelineLibrary(RayTracingShaderCollection &shaderCollection, PipelineSettings &settings,
-                                   vk::PipelineCreateFlags flags = vk::PipelineCreateFlagBits::eDescriptorBufferEXT,
-                                   vk::PipelineCache cache = nullptr, vk::DeferredOperationKHR deferredOp = nullptr);
+        void CreatePipelineLibrary(RayTracingShaderCollection &shaderCollection, PipelineSettings &settings, vk::PipelineCreateFlags flags = vk::PipelineCreateFlagBits::eDescriptorBufferEXT,
+            vk::PipelineCache cache = nullptr, vk::DeferredOperationKHR deferredOp = nullptr);
 
         // @brief Destroys the shader module
         // @param shader The shader module that will be destroyed
@@ -514,8 +495,7 @@ namespace vr
         // DescriptorItem::pImageViews/pResources pointer
         // @warning There can be a segmentation fault if the pointers in the DescriptorItem are not valid or the
         // pointers
-        void UpdateDescriptorBuffer(DescriptorBuffer &buffer, const DescriptorItem &item, DescriptorBufferType type,
-                                    uint32_t setIndexInBuffer = 0, void *pMappedData = nullptr);
+        void UpdateDescriptorBuffer(DescriptorBuffer &buffer, const DescriptorItem &item, DescriptorBufferType type, uint32_t setIndexInBuffer = 0, void *pMappedData = nullptr);
 
         // @brief Updates the descriptor buffer with one element of the descriptor item
         // @param buffer The descriptor buffer that will be updated
@@ -527,9 +507,8 @@ namespace vr
         // and unmapped, default is nullptr
         // @warning There can be a segmentation fault if the pointers in the DescriptorItem are not valid or the item
         // index is out of bounds
-        void UpdateDescriptorBuffer(DescriptorBuffer &buffer, const DescriptorItem &item, uint32_t itemIndex,
-                                    DescriptorBufferType type, uint32_t setIndexInBuffer = 0,
-                                    void *pMappedData = nullptr);
+        void UpdateDescriptorBuffer(DescriptorBuffer &buffer, const DescriptorItem &item, uint32_t itemIndex, DescriptorBufferType type, uint32_t setIndexInBuffer = 0,
+            void *pMappedData = nullptr);
 
         // @brief Binds the descriptor buffer to the command buffer
         // @param buffers The descriptor buffers that will be bound
@@ -673,21 +652,18 @@ namespace vr
 #endif
 
     private:
-        vk::detail::DispatchLoaderDynamic mDynLoader;
 
-        vk::Instance mInstance;
-        vk::Device mDevice;
-        vk::PhysicalDevice mPhysicalDevice;
-
-        vk::PhysicalDeviceProperties mDeviceProperties;
-        vk::PhysicalDeviceRayTracingPipelinePropertiesKHR mRayTracingProperties;
-        vk::PhysicalDeviceAccelerationStructurePropertiesKHR mAccelProperties;
-        vk::PhysicalDeviceDescriptorBufferPropertiesEXT mDescriptorBufferProperties;
-
-        VmaAllocator mVMAllocator;
-        bool mUserSuppliedAllocator = false;
-
-        VmaPool mCurrentPool = nullptr;
+        vk::detail::DispatchLoaderDynamic                       mDynLoader;
+        vk::Instance                                            mInstance;
+        vk::Device                                              mDevice;
+        vk::PhysicalDevice                                      mPhysicalDevice;
+        vk::PhysicalDeviceProperties                            mDeviceProperties;
+        vk::PhysicalDeviceRayTracingPipelinePropertiesKHR       mRayTracingProperties;
+        vk::PhysicalDeviceAccelerationStructurePropertiesKHR    mAccelProperties;
+        vk::PhysicalDeviceDescriptorBufferPropertiesEXT         mDescriptorBufferProperties;
+        VmaAllocator                                            mVMAllocator;
+        bool                                                    mUserSuppliedAllocator = false;
+        VmaPool                                                 mCurrentPool = nullptr;
     };
 
-} // namespace vr
+}

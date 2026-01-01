@@ -2,6 +2,8 @@
 
 #include "VkRay/Buffer.h"
 
+#include "../../src/pch.h"
+
 namespace vr
 {
     /// @brief Contains the device address of the geometry data
@@ -9,46 +11,27 @@ namespace vr
     {
         GeometryDeviceAddress() = default;
         GeometryDeviceAddress(vk::DeviceAddress vertexOrAABBDevAddress, vk::DeviceAddress indexDevAddress)
-            : VertexDevAddress(vertexOrAABBDevAddress), IndexDevAddress(indexDevAddress)
-        {
-        }
+            : VertexDevAddress(vertexOrAABBDevAddress), IndexDevAddress(indexDevAddress) { }
 
-        union
-        {
-            vk::DeviceAddress VertexDevAddress;
-            vk::DeviceAddress AABBDevAddress;
+        union {
+
+            vk::DeviceAddress   VertexDevAddress;
+            vk::DeviceAddress   AABBDevAddress;
         };
 
-        /// @brief Device address of the index buffer, only used for triangles
-        vk::DeviceAddress IndexDevAddress = {};
-
-        /// @brief Buffer containing the transform for the geometry, if this is null, the geometry will use the identity
-        /// matrix
-        vk::DeviceAddress TransformDevAddress = {};
+        vk::DeviceAddress       IndexDevAddress = {};       // Device address of the index buffer, only used for triangles
+        vk::DeviceAddress       TransformDevAddress = {};   // Buffer containing the transform for the geometry, if this is null, the geometry will use the identity matrix
     };
 
     struct GeometryData
     {
-        /// @brief Type of geometry, either triangles or AABBs
-        vk::GeometryTypeKHR Type = vk::GeometryTypeKHR::eTriangles;
-
-        /// @brief Buffer containing the vertices, only used for triangles
-        GeometryDeviceAddress DataAddresses = {};
-
-        /// @brief Format of the index buffer, only used for triangles
-        vk::IndexType IndexFormat = vk::IndexType::eUint32;
-
-        /// @brief Format of the vertex buffer, only used for triangles
-        vk::Format VertexFormat = vk::Format::eR32G32B32Sfloat;
-
-        /// @brief Stride of each element in the vertex buffer or AABB buffer
-        uint32_t Stride = 0;
-
-        /// @brief Number of primitives in the geometry, such as triangles or AABBs
-        uint32_t PrimitiveCount = 0;
-
-        ///@brief Flags for the geometry, Default is eOpaque
-        vk::GeometryFlagsKHR Flags = vk::GeometryFlagBitsKHR::eOpaque;
+        vk::GeometryTypeKHR     Type = vk::GeometryTypeKHR::eTriangles;         // Type of geometry, either triangles or AABBs
+        GeometryDeviceAddress   DataAddresses = {};                             // Buffer containing the vertices, only used for triangles
+        vk::IndexType           IndexFormat = vk::IndexType::eUint32;           // Format of the index buffer, only used for triangles
+        vk::Format              VertexFormat = vk::Format::eR32G32B32Sfloat;    // Format of the vertex buffer, only used for triangles
+        uint32_t                Stride = 0;                                     // Stride of each element in the vertex buffer or AABB buffer
+        uint32_t                PrimitiveCount = 0;                             // Number of primitives in the geometry, such as triangles or AABBs
+        vk::GeometryFlagsKHR    Flags = vk::GeometryFlagBitsKHR::eOpaque;       // Flags for the geometry, Default is eOpaque
     };
 
     //--------------------------------------------------------------------------------------
@@ -59,11 +42,11 @@ namespace vr
     {
         /// @brief Geometries to be added to the BLAS
         /// @note All the geometries must be of the same type, either triangles or AABBs
-        std::vector<GeometryData> Geometries;
+        std::vector<GeometryData>                   Geometries;
 
         /// @brief Flags for the acceleration structure, Default is ePreferFastTrace
         /// @note The flags must be appropriately set for future use, e.g., compaction, update, etc.
-        vk::BuildAccelerationStructureFlagsKHR Flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
+        vk::BuildAccelerationStructureFlagsKHR      Flags = vk::BuildAccelerationStructureFlagBitsKHR::ePreferFastTrace;
     };
 
     struct BLASBuildInfo
@@ -95,7 +78,7 @@ namespace vr
         vk::AccelerationStructureKHR AccelerationStructure = nullptr;
 
         /// @brief Buffer containing the acceleration structure
-        AllocatedBuffer Buffer = {};
+        allocated_buffer Buffer = {};
     };
 
     struct BLASUpdateInfo
@@ -163,9 +146,9 @@ namespace vr
         vk::AccelerationStructureKHR AccelerationStructure = nullptr;
 
         /// @brief Buffer containing the acceleration structure
-        AllocatedBuffer Buffer = {};
+        allocated_buffer Buffer = {};
     };
 
     vk::AccelerationStructureGeometryDataKHR ConvertToVulkanGeometry(const GeometryData &geom);
 
-} // namespace vr
+}

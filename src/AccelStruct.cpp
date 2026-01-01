@@ -1,5 +1,7 @@
-#include "VkRay/AccelStruct.h"
 
+#include "pch.h"
+
+#include "VkRay/AccelStruct.h"
 #include "VkRay/VkRay_device.h"
 
 namespace vr
@@ -191,7 +193,7 @@ namespace vr
     }
 
     std::vector<BLASHandle> VkRayDevice::CompactBLAS(CompactionRequest &request, const std::vector<uint64_t> &sizes,
-                                                      vk::CommandBuffer cmdBuf)
+                                                     vk::CommandBuffer cmdBuf)
     {
         uint32_t blasCount = request.SourceBLAS.size();
         std::vector<BLASHandle> newBLASToReturn(blasCount);
@@ -201,7 +203,7 @@ namespace vr
             if (sizes[i] == 0)
                 continue;
             // Create buffer
-            AllocatedBuffer compactBuffer =
+            allocated_buffer compactBuffer =
                 CreateBuffer(sizes[i], vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR, 0);
 
             // Create the compacted acceleration structure
@@ -230,7 +232,7 @@ namespace vr
     }
 
     std::vector<BLASHandle> VkRayDevice::CompactBLAS(CompactionRequest &request, const std::vector<uint64_t> &sizes,
-                                                      std::vector<BLASHandle *> oldBLAS, vk::CommandBuffer cmdBuf)
+                                                     std::vector<BLASHandle *> oldBLAS, vk::CommandBuffer cmdBuf)
     {
         uint32_t blasCount = request.SourceBLAS.size();
         std::vector<BLASHandle> oldBLASToReturn(blasCount);
@@ -240,7 +242,7 @@ namespace vr
             if (sizes[i] == 0)
                 continue;
             // Create buffer
-            AllocatedBuffer compactBuffer =
+            allocated_buffer compactBuffer =
                 CreateBuffer(sizes[i], vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR, 0);
 
             // Create the compacted acceleration structure
@@ -272,7 +274,7 @@ namespace vr
         return oldBLASToReturn;
     }
 
-    AllocatedBuffer VkRayDevice::CreateScratchBufferFromBuildInfos(std::vector<BLASBuildInfo> &buildInfos)
+    allocated_buffer VkRayDevice::CreateScratchBufferFromBuildInfos(std::vector<BLASBuildInfo> &buildInfos)
     {
         uint32_t scratchSize = GetScratchBufferSize(buildInfos);
 
@@ -283,7 +285,7 @@ namespace vr
         return outScratchBuffer;
     }
 
-    AllocatedBuffer VkRayDevice::CreateScratchBufferFromBuildInfo(BLASBuildInfo &buildInfo)
+    allocated_buffer VkRayDevice::CreateScratchBufferFromBuildInfo(BLASBuildInfo &buildInfo)
     {
         uint32_t scratchSize = buildInfo.BuildGeometryInfo.mode == vk::BuildAccelerationStructureModeKHR::eBuild
                                    ? buildInfo.BuildSizes.buildScratchSize
@@ -320,8 +322,8 @@ namespace vr
         return scratchSize;
     }
 
-    void VkRayDevice::BindScratchBufferToBuildInfos(const vr::AllocatedBuffer &buffer,
-                                                     std::vector<BLASBuildInfo> &buildInfos)
+    void VkRayDevice::BindScratchBufferToBuildInfos(const vr::allocated_buffer &buffer,
+                                                    std::vector<BLASBuildInfo> &buildInfos)
     {
         vk::DeviceAddress scratchDataAddr = buffer.DevAddress;
         for (auto &info : buildInfos)
@@ -406,8 +408,8 @@ namespace vr
         return std::make_pair(outAccel, outBuildInfo);
     }
 
-    void VkRayDevice::BuildTLAS(TLASBuildInfo &buildInfo, const AllocatedBuffer &InstanceBuffer,
-                                 uint32_t instanceCount, vk::CommandBuffer cmdBuf)
+    void VkRayDevice::BuildTLAS(TLASBuildInfo &buildInfo, const allocated_buffer &InstanceBuffer,
+                                uint32_t instanceCount, vk::CommandBuffer cmdBuf)
     {
 
         buildInfo.RangeInfo.primitiveCount = instanceCount;
@@ -421,7 +423,7 @@ namespace vr
     }
 
     std::pair<TLASHandle, TLASBuildInfo> VkRayDevice::UpdateTLAS(TLASHandle &oldTLAS, TLASBuildInfo &oldBuildInfo,
-                                                                  bool destroyOld)
+                                                                 bool destroyOld)
     {
         TLASHandle outAccel = oldTLAS;
         TLASBuildInfo outBuildInfo = oldBuildInfo;
@@ -456,8 +458,8 @@ namespace vr
             AlignUp(scratchAddr, (uint64_t)mAccelProperties.minAccelerationStructureScratchOffsetAlignment));
     }
 
-    void VkRayDevice::BindScratchBufferToBuildInfos(const vr::AllocatedBuffer &buffer,
-                                                     std::vector<TLASBuildInfo> &buildInfos)
+    void VkRayDevice::BindScratchBufferToBuildInfos(const vr::allocated_buffer &buffer,
+                                                    std::vector<TLASBuildInfo> &buildInfos)
     {
         vk::DeviceAddress scratchDataAddr = buffer.DevAddress;
         for (auto &info : buildInfos)
@@ -489,7 +491,7 @@ namespace vr
         return scratchSize;
     }
 
-    AllocatedBuffer VkRayDevice::CreateScratchBufferFromBuildInfos(std::vector<TLASBuildInfo> &buildInfos)
+    allocated_buffer VkRayDevice::CreateScratchBufferFromBuildInfos(std::vector<TLASBuildInfo> &buildInfos)
     {
         uint32_t scratchSize = GetScratchBufferSize(buildInfos);
 
@@ -500,7 +502,7 @@ namespace vr
         return outScratchBuffer;
     }
 
-    AllocatedBuffer VkRayDevice::CreateScratchBufferFromBuildInfo(TLASBuildInfo &buildInfo)
+    allocated_buffer VkRayDevice::CreateScratchBufferFromBuildInfo(TLASBuildInfo &buildInfo)
     {
         uint32_t scratchSize = buildInfo.BuildGeometryInfo.mode == vk::BuildAccelerationStructureModeKHR::eBuild
                                    ? buildInfo.BuildSizes.buildScratchSize
@@ -557,24 +559,25 @@ namespace vr
 
         switch (geom.Type)
         {
-            case vk::GeometryTypeKHR::eTriangles:
-            {
-                return outGeom.setTriangles(vk::AccelerationStructureGeometryTrianglesDataKHR()
-                                                .setVertexFormat(geom.VertexFormat)
-                                                .setVertexData(geom.DataAddresses.VertexDevAddress)
-                                                .setVertexStride(geom.Stride)
-                                                .setMaxVertex(geom.PrimitiveCount * 3) // 3 vertices per triangle
-                                                .setIndexType(geom.IndexFormat)
-                                                .setIndexData(geom.DataAddresses.IndexDevAddress)
-                                                .setTransformData(geom.DataAddresses.TransformDevAddress));
-            }
-            case vk::GeometryTypeKHR::eAabbs:
-            {
-                return outGeom.setAabbs(vk::AccelerationStructureGeometryAabbsDataKHR()
-                                            .setData(geom.DataAddresses.AABBDevAddress)
-                                            .setStride(geom.Stride));
-            }
-            default: break;
+        case vk::GeometryTypeKHR::eTriangles:
+        {
+            return outGeom.setTriangles(vk::AccelerationStructureGeometryTrianglesDataKHR()
+                                            .setVertexFormat(geom.VertexFormat)
+                                            .setVertexData(geom.DataAddresses.VertexDevAddress)
+                                            .setVertexStride(geom.Stride)
+                                            .setMaxVertex(geom.PrimitiveCount * 3) // 3 vertices per triangle
+                                            .setIndexType(geom.IndexFormat)
+                                            .setIndexData(geom.DataAddresses.IndexDevAddress)
+                                            .setTransformData(geom.DataAddresses.TransformDevAddress));
+        }
+        case vk::GeometryTypeKHR::eAabbs:
+        {
+            return outGeom.setAabbs(vk::AccelerationStructureGeometryAabbsDataKHR()
+                                        .setData(geom.DataAddresses.AABBDevAddress)
+                                        .setStride(geom.Stride));
+        }
+        default:
+            break;
         }
         return outGeom;
     }

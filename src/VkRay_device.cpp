@@ -1,13 +1,32 @@
-#include "VkRay/VkRay_device.h"
 
+#include "pch.h"
+
+IGNORE_UNUSED_VARIABLE_START
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
+IGNORE_UNUSED_VARIABLE_STOP
 
-namespace vr
-{
+#include "VkRay/VkRay_device.h"
+
+
+// FORWARD DECLARATIONS ================================================================================================
+
+namespace vr {
+
+    // CONSTANTS =======================================================================================================
+
+    // MACROS ==========================================================================================================
+
+    // TYPES ===========================================================================================================
+
+    // STATIC VARIABLES ================================================================================================
+
+    // FUNCTION IMPLEMENTATION =========================================================================================
+
+    // CLASS IMPLEMENTATION ============================================================================================
+
     VkRayDevice::VkRayDevice(vk::Instance inst, vk::Device dev, vk::PhysicalDevice physDev, VmaAllocator allocator)
-        : mInstance(inst), mDevice(dev), mPhysicalDevice(physDev), mVMAllocator(allocator)
-    {
+        : mInstance(inst), mDevice(dev), mPhysicalDevice(physDev), mVMAllocator(allocator) {
 
         mDynLoader.init(inst, vkGetInstanceProcAddr, dev, vkGetDeviceProcAddr);
 
@@ -19,18 +38,16 @@ namespace vr
         mDescriptorBufferProperties.pNext = nullptr;
 
         mPhysicalDevice.getProperties2KHR(&deviceProperties, mDynLoader);
-
         mDeviceProperties = mPhysicalDevice.getProperties();
 
         // If the supplied allocator isn't null then return, because we don't need to create a new one
-        if (mVMAllocator != nullptr)
-        {
+        if (mVMAllocator != nullptr) {
+
             mUserSuppliedAllocator = true;
             return;
         }
 
-        // Create allocator for accelstructs
-        VmaAllocatorCreateInfo allocatorInfo = {};
+        VmaAllocatorCreateInfo allocatorInfo = {};                  // Create allocator for accel-structs
         allocatorInfo.physicalDevice = physDev;
         allocatorInfo.device = dev;
         allocatorInfo.instance = inst;
@@ -40,10 +57,16 @@ namespace vr
         mUserSuppliedAllocator = false;
     }
 
-    VkRayDevice::~VkRayDevice()
-    {
+    VkRayDevice::~VkRayDevice() {
+
         if (!mUserSuppliedAllocator)
             vmaDestroyAllocator(mVMAllocator);
     }
 
-} // namespace vr
+    // CLASS PUBLIC ====================================================================================================
+
+    // CLASS PROTECTED =================================================================================================
+
+    // CLASS PRIVATE ===================================================================================================
+
+}

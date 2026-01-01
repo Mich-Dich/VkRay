@@ -2,6 +2,8 @@
 
 #include "VkRay/Buffer.h"
 
+#include "../../src/pch.h"
+
 namespace vr
 {
 
@@ -24,7 +26,7 @@ namespace vr
     struct DescriptorBuffer
     {
         /// @brief The buffer that will store the descriptors
-        AllocatedBuffer Buffer;
+        allocated_buffer Buffer;
 
         /// @brief Number of IDENTICAL descriptor sets in the buffer
         /// @note This is useful for offsetting into the buffer that has multiple IDENTICAL descriptor sets and binding
@@ -62,8 +64,8 @@ namespace vr
                        void *pItems = nullptr, uint32_t dynamicArraySize = 0)
             : Type(type), Binding(binding), BindingOffset(0), ArraySize(ArraySize), StageFlags(stageFlags),
               DynamicArraySize(dynamicArraySize),
-              pResources( reinterpret_cast<AllocatedBuffer *>(pItems)) // even if the item isn't a buffer, we can use this field
-                                                                        // since its a union and a 64-bit address
+              pResources(reinterpret_cast<allocated_buffer *>(pItems)) // even if the item isn't a buffer, we can use this field
+                                                                       // since its a union and a 64-bit address
         {
         }
 
@@ -92,16 +94,16 @@ namespace vr
         union
         {
             /// @brief Pointer to the resources that will be stored in the descriptor
-            AllocatedBuffer* pResources = nullptr;
+            allocated_buffer *pResources = nullptr;
 
             /// @brief Pointer to the images that will be stored in the descriptor
-            AccessibleImage* pImages;
+            AccessibleImage *pImages;
 
             /// @brief Pointer to the acceleration structures that will be stored in the descriptor
-            vk::DeviceAddress* pAccelerationStructures;
+            vk::DeviceAddress *pAccelerationStructures;
 
             /// @brief Pointer to the texel buffers that will be stored in the descriptor
-            AllocatedTexelBuffer* pTexelBuffers;
+            AllocatedTexelBuffer *pTexelBuffers;
         };
 
         /// @brief Gets the layout binding for the descriptor

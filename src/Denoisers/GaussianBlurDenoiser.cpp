@@ -1,7 +1,10 @@
 
+#include "../pch.h"
+
 #include "VkRay/Denoisers/GaussianBlurDenoiser.h"
 
 #include "GaussianBlurDenoiser.spv.h"
+
 
 namespace vr
 {
@@ -85,7 +88,7 @@ namespace vr
             auto res = mDevice->GetDevice().createComputePipeline(nullptr, pipelineInfo);
 
             if (res.result != vk::Result::eSuccess)
-                VULRAY_LOG_ERROR("Failed to create median denoiser pipeline");
+                VR_LOG(error, "Failed to create median denoiser pipeline");
             mPipeline = res.value;
         }
 

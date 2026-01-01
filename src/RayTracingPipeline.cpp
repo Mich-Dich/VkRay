@@ -1,5 +1,9 @@
+
+#include "pch.h"
+
 #include "VkRay/Shader.h"
 #include "VkRay/VkRay_device.h"
+
 
 namespace vr
 {
@@ -61,7 +65,7 @@ namespace vr
             // check if both shaders are null
             if (!hg.ClosestHitShader.Module && !hg.AnyHitShader.Module && !hg.IntersectionShader.Module)
             {
-                VULRAY_LOG_ERROR("CreateRayTracingPipeline: Hit group must have at least one shader");
+                VR_LOG(error, "CreateRayTracingPipeline: Hit group must have at least one shader");
             }
 
             // add closest hit shader if it exists
@@ -130,16 +134,16 @@ namespace vr
 
         uint32_t pipelineIndex = 0; // index of shader in the compiled pipeline
 
-        for ([[maybe_unused]]auto& shader: shaderCollection.RayGenShaders)
+        for ([[maybe_unused]] auto &shader : shaderCollection.RayGenShaders)
             sbtInfo.RayGenIndices.push_back(pipelineIndex++);
 
-        for ([[maybe_unused]]auto& shader: shaderCollection.MissShaders)
+        for ([[maybe_unused]] auto &shader : shaderCollection.MissShaders)
             sbtInfo.MissIndices.push_back(pipelineIndex++);
 
-        for ([[maybe_unused]]auto& shader: shaderCollection.HitGroups)
+        for ([[maybe_unused]] auto &shader : shaderCollection.HitGroups)
             sbtInfo.HitGroupIndices.push_back(pipelineIndex++);
 
-        for ([[maybe_unused]]auto& shader: shaderCollection.CallableShaders)
+        for ([[maybe_unused]] auto &shader : shaderCollection.CallableShaders)
             sbtInfo.CallableIndices.push_back(pipelineIndex++);
 
         auto [shaderStages, shderGroups] = GetShaderStagesAndRayTracingGroups(shaderCollection);
@@ -162,7 +166,7 @@ namespace vr
         // when deferredOp is not null, the pipeline is created asynchronously, so it doesn't return success or failure
         if (res.result != vk::Result::eSuccess && res.result != vk::Result::eOperationDeferredKHR)
         {
-            VULRAY_LOG_ERROR("CreateRayTracingPipeline: Failed to create ray tracing pipeline");
+            VR_LOG(error, "CreateRayTracingPipeline: Failed to create ray tracing pipeline");
             res.value = nullptr;
         }
 
@@ -184,16 +188,16 @@ namespace vr
             libPipelines.push_back(collection.CollectionPipeline);
             // Assign where in the pipeline the shaders are, for future SBT creation,
             // so opaque handles can be queried for the shader groups
-            for ([[maybe_unused]]auto& shader : collection.RayGenShaders)
+            for ([[maybe_unused]] auto &shader : collection.RayGenShaders)
                 sbtInfo.RayGenIndices.push_back(pipelineIndex++);
 
-            for ([[maybe_unused]]auto& shader : collection.MissShaders)
+            for ([[maybe_unused]] auto &shader : collection.MissShaders)
                 sbtInfo.MissIndices.push_back(pipelineIndex++);
 
-            for ([[maybe_unused]]auto& shader : collection.HitGroups)
+            for ([[maybe_unused]] auto &shader : collection.HitGroups)
                 sbtInfo.HitGroupIndices.push_back(pipelineIndex++);
 
-            for ([[maybe_unused]]auto& shader : collection.CallableShaders)
+            for ([[maybe_unused]] auto &shader : collection.CallableShaders)
                 sbtInfo.CallableIndices.push_back(pipelineIndex++);
         }
 
@@ -216,7 +220,7 @@ namespace vr
         // when deferredOp is not null, the pipeline is created asynchronously, so it doesn't return success or failure
         if (res.result != vk::Result::eSuccess && res.result != vk::Result::eOperationDeferredKHR)
         {
-            VULRAY_LOG_ERROR("CreateRayTracingPipeline: Failed to create ray tracing pipeline");
+            VR_LOG(error, "CreateRayTracingPipeline: Failed to create ray tracing pipeline");
             res.value = nullptr;
         }
 
@@ -239,8 +243,8 @@ namespace vr
     }
 
     void VkRayDevice::CreatePipelineLibrary(RayTracingShaderCollection &shaderCollection, PipelineSettings &settings,
-                                             vk::PipelineCreateFlags flags, vk::PipelineCache cache,
-                                             vk::DeferredOperationKHR deferredOp)
+                                            vk::PipelineCreateFlags flags, vk::PipelineCache cache,
+                                            vk::DeferredOperationKHR deferredOp)
     {
         vk::RayTracingPipelineInterfaceCreateInfoKHR interfaceInfo =
             vk::RayTracingPipelineInterfaceCreateInfoKHR()
@@ -262,7 +266,7 @@ namespace vr
         // when deferredOp is not null, the pipeline is created asynchronously, so it doesn't return success or failure
         if (res.result != vk::Result::eSuccess && res.result != vk::Result::eOperationDeferredKHR)
         {
-            VULRAY_LOG_ERROR("CreateRayTracingPipeline: Failed to create ray tracing pipeline");
+            VR_LOG(error, "CreateRayTracingPipeline: Failed to create ray tracing pipeline");
             res.value = nullptr;
         }
 
@@ -270,7 +274,7 @@ namespace vr
     }
 
     void VkRayDevice::DispatchRays(const vk::Pipeline rtPipeline, const SBTBuffer &buffer, uint32_t width,
-                                    uint32_t height, uint32_t depth, vk::CommandBuffer cmdBuf)
+                                   uint32_t height, uint32_t depth, vk::CommandBuffer cmdBuf)
     {
         // dispatch rays
         cmdBuf.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, rtPipeline);

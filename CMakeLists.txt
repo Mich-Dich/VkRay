@@ -50,7 +50,7 @@ file(GLOB VK_RAY_SRC_FILES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
 # Add files depending on options
 if(VK_RAY_BUILD_VULKAN_BUILDER)
-    list(APPEND VK_RAY_SRC_FILES "${PROJECT_SOURCE_DIR}/src/VulkanBuilder/VulkanBuilder.cpp")
+    list(APPEND VK_RAY_SRC_FILES "${PROJECT_SOURCE_DIR}/src/builders/builders.cpp")
 endif()
 if(VK_RAY_BUILD_DENOISERS)
     file(GLOB DENOISER_SRC_FILES "${PROJECT_SOURCE_DIR}/src/Denoisers/*.cpp")
@@ -64,7 +64,7 @@ if(VK_RAY_BUILD_DENOISERS)
 endif()
 
 # ============ HEADER FILE OPTIONS ============
-target_precompile_headers("VkRay" PRIVATE "${PROJECT_SOURCE_DIR}/include/VkRay/VkRay.h")
+target_precompile_headers("VkRay" PRIVATE "${PROJECT_SOURCE_DIR}/src/pch.h")
 
 target_include_directories("VkRay" PUBLIC
     "${Vulkan_INCLUDE_DIRS}"

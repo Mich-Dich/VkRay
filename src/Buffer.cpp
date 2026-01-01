@@ -1,12 +1,14 @@
-#include "VkRay/Buffer.h"
 
+#include "pch.h"
+
+#include "VkRay/Buffer.h"
 #include "VkRay/VkRay_device.h"
 
 namespace vr
 {
 
     AllocatedImage VkRayDevice::CreateImage(const vk::ImageCreateInfo &imgInfo, VmaAllocationCreateFlags flags,
-                                             VmaPool pool)
+                                            VmaPool pool)
     {
         AllocatedImage outImage = {};
         VmaAllocationCreateInfo allocInf = {};
@@ -20,7 +22,7 @@ namespace vr
                                                  (VkImage *)&outImage.Image, &outImage.Allocation, &allocationInfo);
         if (result != vk::Result::eSuccess)
         {
-            VULRAY_FLOG_ERROR("Failed to create Image: %s", vk::to_string(result));
+            VR_LOG(error, "Failed to create Image: %s", vk::to_string(result));
         }
 
         outImage.Size = allocationInfo.size;
@@ -29,10 +31,10 @@ namespace vr
         return outImage;
     }
 
-    AllocatedBuffer VkRayDevice::CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags bufferUsage,
+    allocated_buffer VkRayDevice::CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags bufferUsage,
                                                VmaAllocationCreateFlags flags, uint32_t alignment, VmaPool pool)
     {
-        AllocatedBuffer outBuffer = {};
+        allocated_buffer outBuffer = {};
 
         VmaAllocationCreateInfo allocInf = {};
         allocInf.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
@@ -58,7 +60,7 @@ namespace vr
         }
         if (result != vk::Result::eSuccess)
         {
-            VULRAY_FLOG_ERROR("Failed to create buffer: %s", vk::to_string(result));
+            VR_LOG(error, "Failed to create buffer: %s", vk::to_string(result));
             return outBuffer;
         }
 
@@ -67,22 +69,22 @@ namespace vr
         return outBuffer;
     }
 
-    AllocatedBuffer VkRayDevice::CreateInstanceBuffer(uint32_t instanceCount)
+    allocated_buffer VkRayDevice::CreateInstanceBuffer(uint32_t instanceCount)
     {
         return CreateBuffer(instanceCount * sizeof(vk::AccelerationStructureInstanceKHR),
                             vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR,
                             VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
     }
 
-    AllocatedBuffer VkRayDevice::CreateScratchBuffer(uint32_t size)
+    allocated_buffer VkRayDevice::CreateScratchBuffer(uint32_t size)
     {
         return CreateBuffer(size, vk::BufferUsageFlagBits::eStorageBuffer, 0,
                             mAccelProperties.minAccelerationStructureScratchOffsetAlignment);
     }
 
     DescriptorBuffer VkRayDevice::CreateDescriptorBuffer(vk::DescriptorSetLayout layout,
-                                                          std::vector<DescriptorItem> &items, DescriptorBufferType type,
-                                                          uint32_t setCount)
+                                                         std::vector<DescriptorItem> &items, DescriptorBufferType type,
+                                                         uint32_t setCount)
     {
         DescriptorBuffer outBuffer = {};
 
@@ -94,7 +96,7 @@ namespace vr
 
         // create a buffer that is big enough to hold all the descriptor sets and with the proper alignment
         outBuffer.Buffer = CreateBuffer(size * setCount, usageFlags, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
-            mDescriptorBufferProperties.descriptorBufferOffsetAlignment);
+                                        mDescriptorBufferProperties.descriptorBufferOffsetAlignment);
 
         // fill the offsets to the items
         for (auto &item : items)
@@ -110,7 +112,7 @@ namespace vr
         return outBuffer;
     }
 
-    void VkRayDevice::DestroyBuffer(AllocatedBuffer &buffer)
+    void VkRayDevice::DestroyBuffer(allocated_buffer &buffer)
     {
         vmaDestroyBuffer(mVMAllocator, buffer.Buffer, buffer.Allocation);
         buffer.Buffer = nullptr;
@@ -125,7 +127,7 @@ namespace vr
         img.Allocation = nullptr;
     }
 
-    void VkRayDevice::UpdateBuffer(AllocatedBuffer alloc, void *data, const vk::DeviceSize size, uint32_t offset)
+    void VkRayDevice::UpdateBuffer(allocated_buffer alloc, void *data, const vk::DeviceSize size, uint32_t offset)
     {
         void *mappedData;
         vmaMapMemory(mVMAllocator, alloc.Allocation, &mappedData);
@@ -133,27 +135,27 @@ namespace vr
         vmaUnmapMemory(mVMAllocator, alloc.Allocation);
     }
 
-    void VkRayDevice::CopyData(AllocatedBuffer src, AllocatedBuffer dst, vk::DeviceSize size, vk::CommandBuffer cmdBuf)
+    void VkRayDevice::CopyData(allocated_buffer src, allocated_buffer dst, vk::DeviceSize size, vk::CommandBuffer cmdBuf)
     {
         auto copyRegion = vk::BufferCopy().setSize(size);
         cmdBuf.copyBuffer(src.Buffer, dst.Buffer, copyRegion);
     }
 
-    void *VkRayDevice::MapBuffer(AllocatedBuffer &buffer)
+    void *VkRayDevice::MapBuffer(allocated_buffer &buffer)
     {
         void *mappedData;
         vmaMapMemory(mVMAllocator, buffer.Allocation, &mappedData);
         return mappedData;
     }
 
-    void VkRayDevice::UnmapBuffer(AllocatedBuffer &buffer)
+    void VkRayDevice::UnmapBuffer(allocated_buffer &buffer)
     {
         vmaUnmapMemory(mVMAllocator, buffer.Allocation);
     }
 
     void VkRayDevice::TransitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
-                                             const vk::ImageSubresourceRange &range, vk::CommandBuffer cmdBuf,
-                                             vk::PipelineStageFlags srcStage, vk::PipelineStageFlags dstStage)
+                                            const vk::ImageSubresourceRange &range, vk::CommandBuffer cmdBuf,
+                                            vk::PipelineStageFlags srcStage, vk::PipelineStageFlags dstStage)
     {
         // transition image layout with ..set functions
         auto barrier = vk::ImageMemoryBarrier()
@@ -186,7 +188,8 @@ namespace vr
         case vk::ImageLayout::eShaderReadOnlyOptimal:
             barrier.setSrcAccessMask(vk::AccessFlagBits::eShaderRead);
             break;
-        default: break;
+        default:
+            break;
         }
         // set dst access masks
         switch (newLayout)
@@ -208,7 +211,8 @@ namespace vr
                 barrier.setSrcAccessMask(vk::AccessFlagBits::eHostWrite | vk::AccessFlagBits::eTransferWrite);
             barrier.setDstAccessMask(vk::AccessFlagBits::eShaderRead);
             break;
-        default: break;
+        default:
+            break;
         }
         cmdBuf.pipelineBarrier(srcStage, dstStage, (vk::DependencyFlagBits)0, 0, nullptr, 0, nullptr, 1, &barrier);
     }

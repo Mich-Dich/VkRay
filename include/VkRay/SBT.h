@@ -1,6 +1,9 @@
 #pragma once
 
 #include "VkRay/Shader.h"
+#include "VkRay/Buffer.h"
+
+#include "../../src/pch.h"
 
 namespace vr
 {
@@ -24,10 +27,10 @@ namespace vr
     /// @brief Structure that defines a Shader Binding Table that can be used to trace rays
     struct SBTBuffer
     {
-        AllocatedBuffer RayGenBuffer = {};
-        AllocatedBuffer MissBuffer = {};
-        AllocatedBuffer HitGroupBuffer = {};
-        AllocatedBuffer CallableBuffer = {};
+        allocated_buffer RayGenBuffer = {};
+        allocated_buffer MissBuffer = {};
+        allocated_buffer HitGroupBuffer = {};
+        allocated_buffer CallableBuffer = {};
 
         /*
         Offsets define the start of the shader records in bytes.

@@ -1,9 +1,12 @@
 #pragma once
 
+#include "../../src/pch.h"
+
+
 namespace vr
 {
     /// @brief Structure of a Buffer used for calls with VkRay
-    struct AllocatedBuffer
+    struct allocated_buffer
     {
         /// @brief The allocation for the buffer, if this is null, the buffer is not allocated by VkRay
         /// @note If this is not null, the buffer is allocated by VkRay and should be freed by calling
@@ -23,7 +26,7 @@ namespace vr
     struct AllocatedTexelBuffer
     {
         /// @brief The allocation for the buffer
-        AllocatedBuffer Buffer;
+        allocated_buffer Buffer;
 
         /// @brief The format of the texel buffer
         vk::Format Format = vk::Format::eUndefined;
