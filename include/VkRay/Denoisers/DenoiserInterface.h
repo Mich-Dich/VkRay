@@ -4,7 +4,7 @@
 
 namespace vr
 {
-    class VkRayDevice;
+    class vk_ray_device;
     namespace Denoise
     {
         enum class ResourceType : uint32_t
@@ -42,13 +42,11 @@ namespace vr
             vk::ImageUsageFlags OutputUsage;
         };
 
-        class DenoiserInterface
-        {
+        class DenoiserInterface {
         public:
-            DenoiserInterface(vr::VkRayDevice *device, const DenoiserSettings &settings)
-                : mDevice(device), mSettings(settings)
-            {
-            }
+
+            DenoiserInterface(vr::vk_ray_device *device, const DenoiserSettings &settings)
+                : m_device(device), mSettings(settings) { }
 
             virtual ~DenoiserInterface();
 
@@ -96,7 +94,7 @@ namespace vr
         protected:
             // Reference to the vulray device that was used to create the denoiser
             // This is needed to destroy the resources
-            vr::VkRayDevice *mDevice;
+            vr::vk_ray_device* m_device;
 
             DenoiserSettings mSettings;
 

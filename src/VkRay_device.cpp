@@ -25,25 +25,24 @@ namespace vr {
 
     // CLASS IMPLEMENTATION ============================================================================================
 
-    VkRayDevice::VkRayDevice(vk::Instance inst, vk::Device dev, vk::PhysicalDevice physDev, VmaAllocator allocator)
-        : mInstance(inst), mDevice(dev), mPhysicalDevice(physDev), mVMAllocator(allocator) {
+    vk_ray_device::vk_ray_device(vk::Instance inst, vk::Device dev, vk::PhysicalDevice physDev, VmaAllocator allocator)
+        : m_instance(inst), m_device(dev), m_physical_device(physDev), m_vma_allocator(allocator) {
 
-        mDynLoader.init(inst, vkGetInstanceProcAddr, dev, vkGetDeviceProcAddr);
+        m_dyn_loader.init(inst, vkGetInstanceProcAddr, dev, vkGetDeviceProcAddr);
 
         // Get ray tracing and accel properties
         auto deviceProperties = vk::PhysicalDeviceProperties2KHR();
-        deviceProperties.pNext = &mRayTracingProperties;
-        mRayTracingProperties.pNext = &mAccelProperties;
-        mAccelProperties.pNext = &mDescriptorBufferProperties;
-        mDescriptorBufferProperties.pNext = nullptr;
-
-        mPhysicalDevice.getProperties2KHR(&deviceProperties, mDynLoader);
-        mDeviceProperties = mPhysicalDevice.getProperties();
+        deviceProperties.pNext = &m_ray_tracing_properties;
+        m_ray_tracing_properties.pNext = &m_accel_properties;
+        m_accel_properties.pNext = &m_descriptor_buffer_properties;
+        m_descriptor_buffer_properties.pNext = nullptr;
+        m_physical_device.getProperties2KHR(&deviceProperties, m_dyn_loader);
+        m_device_properties = m_physical_device.getProperties();
 
         // If the supplied allocator isn't null then return, because we don't need to create a new one
-        if (mVMAllocator != nullptr) {
+        if (m_vma_allocator != nullptr) {
 
-            mUserSuppliedAllocator = true;
+            m_user_supplied_allocator = true;
             return;
         }
 
@@ -53,14 +52,15 @@ namespace vr {
         allocatorInfo.instance = inst;
         allocatorInfo.flags = VmaAllocatorCreateFlagBits::VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
 
-        vmaCreateAllocator(&allocatorInfo, &mVMAllocator);
-        mUserSuppliedAllocator = false;
+        vmaCreateAllocator(&allocatorInfo, &m_vma_allocator);
+        m_user_supplied_allocator = false;
     }
 
-    VkRayDevice::~VkRayDevice() {
 
-        if (!mUserSuppliedAllocator)
-            vmaDestroyAllocator(mVMAllocator);
+    vk_ray_device::~vk_ray_device() {
+
+        if (!m_user_supplied_allocator)
+            vmaDestroyAllocator(m_vma_allocator);
     }
 
     // CLASS PUBLIC ====================================================================================================

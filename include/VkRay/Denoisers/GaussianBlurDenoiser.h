@@ -9,7 +9,7 @@ namespace vr::Denoise
   class GaussianBlurDenoiser : public DenoiserInterface
   {
   public:
-    GaussianBlurDenoiser(vr::VkRayDevice *device, const DenoiserSettings &settings);
+    GaussianBlurDenoiser(vr::vk_ray_device *device, const DenoiserSettings &settings);
     ~GaussianBlurDenoiser() override;
 
     GaussianBlurDenoiser() = delete;

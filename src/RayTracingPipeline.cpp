@@ -9,7 +9,7 @@ namespace vr
 {
 
     std::pair<std::vector<vk::PipelineShaderStageCreateInfo>, std::vector<vk::RayTracingShaderGroupCreateInfoKHR>>
-    VkRayDevice::GetShaderStagesAndRayTracingGroups(const RayTracingShaderCollection &info)
+    vk_ray_device::GetShaderStagesAndRayTracingGroups(const RayTracingShaderCollection &info)
     {
         std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
         std::vector<vk::RayTracingShaderGroupCreateInfoKHR> shaderGroups;
@@ -126,7 +126,7 @@ namespace vr
         return std::make_pair(std::move(shaderStages), std::move(shaderGroups));
     }
 
-    std::pair<vk::Pipeline, SBTInfo> VkRayDevice::CreateRayTracingPipeline(
+    std::pair<vk::Pipeline, SBTInfo> vk_ray_device::CreateRayTracingPipeline(
         const RayTracingShaderCollection &shaderCollection, PipelineSettings &settings, vk::PipelineCreateFlags flags,
         vk::DeferredOperationKHR deferredOp)
     {
@@ -161,7 +161,7 @@ namespace vr
                                 .setGroups(shderGroups)
                                 .setStages(shaderStages);
 
-        auto res = mDevice.createRayTracingPipelineKHR(deferredOp, nullptr, pipelineInfo, nullptr, mDynLoader);
+        auto res = m_device.createRayTracingPipelineKHR(deferredOp, nullptr, pipelineInfo, nullptr, m_dyn_loader);
 
         // when deferredOp is not null, the pipeline is created asynchronously, so it doesn't return success or failure
         if (res.result != vk::Result::eSuccess && res.result != vk::Result::eOperationDeferredKHR)
@@ -172,7 +172,7 @@ namespace vr
 
         return std::make_pair(res.value, sbtInfo);
     }
-    std::pair<vk::Pipeline, SBTInfo> VkRayDevice::CreateRayTracingPipeline(
+    std::pair<vk::Pipeline, SBTInfo> vk_ray_device::CreateRayTracingPipeline(
         const std::vector<RayTracingShaderCollection> &shaderCollections, PipelineSettings &settings,
         vk::PipelineCreateFlags flags, vk::PipelineCache cache, vk::DeferredOperationKHR deferredOp)
     {
@@ -216,7 +216,7 @@ namespace vr
                                 .setPLibraryInfo(&libraryInfo)
                                 .setLayout(settings.PipelineLayout);
 
-        auto res = mDevice.createRayTracingPipelineKHR(deferredOp, cache, pipelineInfo, nullptr, mDynLoader);
+        auto res = m_device.createRayTracingPipelineKHR(deferredOp, cache, pipelineInfo, nullptr, m_dyn_loader);
         // when deferredOp is not null, the pipeline is created asynchronously, so it doesn't return success or failure
         if (res.result != vk::Result::eSuccess && res.result != vk::Result::eOperationDeferredKHR)
         {
@@ -227,7 +227,7 @@ namespace vr
         return std::make_pair(res.value, sbtInfo);
     }
 
-    std::pair<vk::Pipeline, SBTInfo> VkRayDevice::CreateRayTracingPipeline(
+    std::pair<vk::Pipeline, SBTInfo> vk_ray_device::CreateRayTracingPipeline(
         const std::vector<RayTracingShaderCollection> &shaderCollections, PipelineSettings &settings,
         SBTInfo &sbtInfoOld, vk::PipelineCreateFlags flags, vk::PipelineCache cache,
         vk::DeferredOperationKHR deferredOp)
@@ -242,7 +242,7 @@ namespace vr
         return pipelineInfo;
     }
 
-    void VkRayDevice::CreatePipelineLibrary(RayTracingShaderCollection &shaderCollection, PipelineSettings &settings,
+    void vk_ray_device::CreatePipelineLibrary(RayTracingShaderCollection &shaderCollection, PipelineSettings &settings,
                                             vk::PipelineCreateFlags flags, vk::PipelineCache cache,
                                             vk::DeferredOperationKHR deferredOp)
     {
@@ -261,7 +261,7 @@ namespace vr
                                 .setGroups(shderGroups)
                                 .setStages(shaderStages);
 
-        auto res = mDevice.createRayTracingPipelineKHR(deferredOp, cache, pipelineInfo, nullptr, mDynLoader);
+        auto res = m_device.createRayTracingPipelineKHR(deferredOp, cache, pipelineInfo, nullptr, m_dyn_loader);
 
         // when deferredOp is not null, the pipeline is created asynchronously, so it doesn't return success or failure
         if (res.result != vk::Result::eSuccess && res.result != vk::Result::eOperationDeferredKHR)
@@ -273,12 +273,12 @@ namespace vr
         shaderCollection.CollectionPipeline = res.value;
     }
 
-    void VkRayDevice::DispatchRays(const vk::Pipeline rtPipeline, const SBTBuffer &buffer, uint32_t width,
+    void vk_ray_device::DispatchRays(const vk::Pipeline rtPipeline, const SBTBuffer &buffer, uint32_t width,
                                    uint32_t height, uint32_t depth, vk::CommandBuffer cmdBuf)
     {
         // dispatch rays
         cmdBuf.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, rtPipeline);
         cmdBuf.traceRaysKHR(&buffer.RayGenRegion, &buffer.MissRegion, &buffer.HitGroupRegion, &buffer.CallableRegion,
-                            width, height, depth, mDynLoader);
+                            width, height, depth, m_dyn_loader);
     }
 } // namespace vr

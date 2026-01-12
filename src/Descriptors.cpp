@@ -17,7 +17,7 @@ static size_t GetDescriptorTypeDataSize(vk::DescriptorType type, const vk::Physi
 namespace vr {
 
 
-    vk::DescriptorSetLayout VkRayDevice::CreateDescriptorSetLayout(const std::vector<DescriptorItem> &bindings) {
+    vk::DescriptorSetLayout vk_ray_device::CreateDescriptorSetLayout(const std::vector<DescriptorItem> &bindings) {
 
         bool has_dynamic = false;
 
@@ -54,7 +54,7 @@ namespace vr {
             .setBindingCount(static_cast<uint32_t>(item_flags.size()))
             .setPBindingFlags(item_flags.data());
 
-        return mDevice.createDescriptorSetLayout(
+        return m_device.createDescriptorSetLayout(
             vk::DescriptorSetLayoutCreateInfo()
                 .setBindingCount(static_cast<uint32_t>(layout_bindings.size()))
                 .setFlags(vk::DescriptorSetLayoutCreateFlagBits::eDescriptorBufferEXT)
@@ -62,7 +62,7 @@ namespace vr {
                 .setPNext(has_dynamic ? &flags : nullptr));
     }
 
-    void VkRayDevice::UpdateDescriptorBuffer(DescriptorBuffer &buffer, const DescriptorItem &item, uint32_t itemIndex, DescriptorBufferType type,
+    void vk_ray_device::UpdateDescriptorBuffer(DescriptorBuffer &buffer, const DescriptorItem &item, uint32_t itemIndex, DescriptorBufferType type,
         uint32_t setIndexInBuffer, void *pMappedData) {
 
         uint32_t set_offset = buffer.GetOffsetToSet(setIndexInBuffer);                                                  // offset into the buffer
@@ -72,16 +72,16 @@ namespace vr {
         auto address_info = vk::DescriptorAddressInfoEXT();                                                             // in case of buffer
         auto image_info = vk::DescriptorImageInfo();                                                                    // in case of image or sampler
         vk::Sampler sampler = nullptr;                                                                                  // in case of sampler
-        uint32_t data_size = GetDescriptorTypeDataSize(item.Type, mDescriptorBufferProperties);
+        uint32_t data_size = GetDescriptorTypeDataSize(item.Type, m_descriptor_buffer_properties);
 
         GetInfoOfDescriptorItem(item, itemIndex, &address_info, &image_info, &sampler, &desc_get_info.data);
-        mDevice.getDescriptorEXT(&desc_get_info, data_size, cursor, mDynLoader);                                        // write to cursor
+        m_device.getDescriptorEXT(&desc_get_info, data_size, cursor, m_dyn_loader);                                        // write to cursor
         if (pMappedData == nullptr)
             UnmapBuffer(buffer.Buffer);
     }
 
 
-    void VkRayDevice::UpdateDescriptorBuffer(DescriptorBuffer &buffer, const std::vector<DescriptorItem> &items, DescriptorBufferType type,
+    void vk_ray_device::UpdateDescriptorBuffer(DescriptorBuffer &buffer, const std::vector<DescriptorItem> &items, DescriptorBufferType type,
         uint32_t setIndexInBuffer, void *pMappedData) {
 
         uint32_t set_offset = buffer.GetOffsetToSet(setIndexInBuffer);                                                  // offset into the buffer
@@ -96,14 +96,14 @@ namespace vr {
 
             cursor = mapped_data + items[i].BindingOffset;                                                              // move the cursor to the current item
             desc_get_info.type = items[i].Type;                                                                         // same type for all items in the array
-            size_t data_size = GetDescriptorTypeDataSize(items[i].Type, mDescriptorBufferProperties);
+            size_t data_size = GetDescriptorTypeDataSize(items[i].Type, m_descriptor_buffer_properties);
 
             uint32_t arraySize = items[i].DynamicArraySize > 0 ? items[i].DynamicArraySize : items[i].ArraySize;
 
             for (uint32_t j = 0; j < arraySize; j++) {
 
                 GetInfoOfDescriptorItem(items[i], j, &address_info, &image_info, &sampler, &desc_get_info.data);
-                mDevice.getDescriptorEXT(&desc_get_info, data_size, cursor, mDynLoader);                                // write to cursor
+                m_device.getDescriptorEXT(&desc_get_info, data_size, cursor, m_dyn_loader);                                // write to cursor
                 cursor += data_size;
             }
         }
@@ -113,7 +113,7 @@ namespace vr {
     }
 
 
-    void VkRayDevice::UpdateDescriptorBuffer(DescriptorBuffer &buffer, const DescriptorItem &item, DescriptorBufferType type,
+    void vk_ray_device::UpdateDescriptorBuffer(DescriptorBuffer &buffer, const DescriptorItem &item, DescriptorBufferType type,
         uint32_t setIndexInBuffer, void *pMappedData) {
 
         char *mapped_data = pMappedData == nullptr ? (char *)MapBuffer(buffer.Buffer) : (char *)pMappedData;
@@ -129,7 +129,7 @@ namespace vr {
     }
 
 
-    void VkRayDevice::BindDescriptorBuffer(const std::vector<DescriptorBuffer> &buffers, vk::CommandBuffer cmdBuf) {
+    void vk_ray_device::BindDescriptorBuffer(const std::vector<DescriptorBuffer> &buffers, vk::CommandBuffer cmdBuf) {
 
         std::vector<vk::DescriptorBufferBindingInfoEXT> binding_infos;
         binding_infos.reserve(buffers.size());
@@ -146,37 +146,37 @@ namespace vr {
             buffer_indices.push_back(i);
         }
 
-        cmdBuf.bindDescriptorBuffersEXT(binding_infos, mDynLoader);
+        cmdBuf.bindDescriptorBuffersEXT(binding_infos, m_dyn_loader);
     }
 
 
-    void VkRayDevice::BindDescriptorSet(vk::PipelineLayout layout, uint32_t set, uint32_t bufferIndex, vk::DeviceSize offset,
+    void vk_ray_device::BindDescriptorSet(vk::PipelineLayout layout, uint32_t set, uint32_t bufferIndex, vk::DeviceSize offset,
         vk::CommandBuffer cmdBuf, vk::PipelineBindPoint bindPoint) {
 
-        cmdBuf.setDescriptorBufferOffsetsEXT(bindPoint, layout, set, 1, &bufferIndex, &offset, mDynLoader);
+        cmdBuf.setDescriptorBufferOffsetsEXT(bindPoint, layout, set, 1, &bufferIndex, &offset, m_dyn_loader);
     }
 
 
-    void VkRayDevice::BindDescriptorSet(vk::PipelineLayout layout, uint32_t set, std::vector<uint32_t> bufferIndex,
+    void vk_ray_device::BindDescriptorSet(vk::PipelineLayout layout, uint32_t set, std::vector<uint32_t> bufferIndex,
         std::vector<vk::DeviceSize> offset, vk::CommandBuffer cmdBuf, vk::PipelineBindPoint bindPoint) {
 
-        cmdBuf.setDescriptorBufferOffsetsEXT(bindPoint, layout, set, bufferIndex.size(), bufferIndex.data(), offset.data(), mDynLoader);
+        cmdBuf.setDescriptorBufferOffsetsEXT(bindPoint, layout, set, bufferIndex.size(), bufferIndex.data(), offset.data(), m_dyn_loader);
     }
 
 
-    vk::PipelineLayout VkRayDevice::CreatePipelineLayout(const std::vector<vk::DescriptorSetLayout> &descLayouts) {
+    vk::PipelineLayout vk_ray_device::CreatePipelineLayout(const std::vector<vk::DescriptorSetLayout> &descLayouts) {
 
         // create pipeline layout
-        return mDevice.createPipelineLayout(vk::PipelineLayoutCreateInfo()
+        return m_device.createPipelineLayout(vk::PipelineLayoutCreateInfo()
                                                 .setSetLayoutCount(static_cast<uint32_t>(descLayouts.size()))
                                                 .setPSetLayouts(descLayouts.data()));
     }
 
 
-    vk::PipelineLayout VkRayDevice::CreatePipelineLayout(vk::DescriptorSetLayout descLayout) {
+    vk::PipelineLayout vk_ray_device::CreatePipelineLayout(vk::DescriptorSetLayout descLayout) {
 
         // create pipeline layout
-        return mDevice.createPipelineLayout(vk::PipelineLayoutCreateInfo()
+        return m_device.createPipelineLayout(vk::PipelineLayoutCreateInfo()
                                                 .setSetLayoutCount(1)
                                                 .setFlags(vk::PipelineLayoutCreateFlagBits::eIndependentSetsEXT)
                                                 .setPSetLayouts(&descLayout));

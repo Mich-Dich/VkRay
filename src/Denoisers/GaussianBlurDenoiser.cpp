@@ -10,7 +10,7 @@ namespace vr
 {
     namespace Denoise
     {
-        GaussianBlurDenoiser::GaussianBlurDenoiser(vr::VkRayDevice *device, const DenoiserSettings &settings)
+        GaussianBlurDenoiser::GaussianBlurDenoiser(vr::vk_ray_device *device, const DenoiserSettings &settings)
             : DenoiserInterface(device, settings)
         {
             mDenoiserParams = new Parameters();
@@ -21,14 +21,14 @@ namespace vr
         GaussianBlurDenoiser::~GaussianBlurDenoiser()
         {
             // Destroy descriptor set layout
-            mDevice->GetDevice().destroyDescriptorSetLayout(mDescriptorSetLayout);
-            mDevice->DestroyBuffer(mDescriptorBuffer.Buffer);
+            m_device->GetDevice().destroyDescriptorSetLayout(mDescriptorSetLayout);
+            m_device->DestroyBuffer(mDescriptorBuffer.Buffer);
 
             // Destroy pipeline
-            mDevice->GetDevice().destroyPipeline(mPipeline);
-            mDevice->GetDevice().destroyPipelineLayout(mPipelineLayout);
+            m_device->GetDevice().destroyPipeline(mPipeline);
+            m_device->GetDevice().destroyPipelineLayout(mPipelineLayout);
 
-            mDevice->GetDevice().destroyShaderModule(mShaderModule);
+            ->GetDevice().destroyShaderModule(mShaderModule);
 
             delete (Parameters *)mDenoiserParams;
         }
@@ -47,11 +47,11 @@ namespace vr
                 vr::DescriptorItem(1, vk::DescriptorType::eStorageImage, vk::ShaderStageFlagBits::eCompute, 1,
                                    &mOutputResources[0].AccessImage)};
 
-            mDescriptorSetLayout = mDevice->CreateDescriptorSetLayout(mDescriptorItems);
-            mDescriptorBuffer = mDevice->CreateDescriptorBuffer(mDescriptorSetLayout, mDescriptorItems,
+            mDescriptorSetLayout = m_device->CreateDescriptorSetLayout(mDescriptorItems);
+            mDescriptorBuffer = m_device->CreateDescriptorBuffer(mDescriptorSetLayout, mDescriptorItems,
                                                                 vr::DescriptorBufferType::Combined);
 
-            mDevice->UpdateDescriptorBuffer(mDescriptorBuffer, mDescriptorItems, vr::DescriptorBufferType::Combined);
+            m_device->UpdateDescriptorBuffer(mDescriptorBuffer, mDescriptorItems, vr::DescriptorBufferType::Combined);
 
             // Create the pipeline layout
             auto pushConstantRange = vk::PushConstantRange()
@@ -64,7 +64,7 @@ namespace vr
                                                                   .setPPushConstantRanges(&pushConstantRange)
                                                                   .setPushConstantRangeCount(1);
 
-            mPipelineLayout = mDevice->GetDevice().createPipelineLayout(pipelineLayoutInfo);
+            mPipelineLayout = m_device->GetDevice().createPipelineLayout(pipelineLayoutInfo);
 
             // From char array to uint32_t array
             uint32_t *shaderCode = (uint32_t *)&g_GaussianBlurDenoiser_main;
@@ -74,7 +74,7 @@ namespace vr
 
             // Create the shader module
             auto shaderModuleInfo = vk::ShaderModuleCreateInfo().setCodeSize(spvSize).setPCode(shaderCode);
-            mShaderModule = mDevice->GetDevice().createShaderModule(shaderModuleInfo);
+            mShaderModule = m_device->GetDevice().createShaderModule(shaderModuleInfo);
 
             //  Create the pipeline
             auto pipelineInfo = vk::ComputePipelineCreateInfo()
@@ -85,7 +85,7 @@ namespace vr
                                                   .setModule(mShaderModule)
                                                   .setPName("GaussianBlurDenoiser_main"));
 
-            auto res = mDevice->GetDevice().createComputePipeline(nullptr, pipelineInfo);
+            auto res = m_device->GetDevice().createComputePipeline(nullptr, pipelineInfo);
 
             if (res.result != vk::Result::eSuccess)
                 VR_LOG(error, "Failed to create median denoiser pipeline");
@@ -111,8 +111,8 @@ namespace vr
         {
             // Bind the pipeline
             cmdBuffer.bindPipeline(vk::PipelineBindPoint::eCompute, mPipeline);
-            mDevice->BindDescriptorBuffer({mDescriptorBuffer}, cmdBuffer);
-            mDevice->BindDescriptorSet(mPipelineLayout, 0, 0, 0, cmdBuffer, vk::PipelineBindPoint::eCompute);
+            m_device->BindDescriptorBuffer({mDescriptorBuffer}, cmdBuffer);
+            m_device->BindDescriptorSet(mPipelineLayout, 0, 0, 0, cmdBuffer, vk::PipelineBindPoint::eCompute);
 
             PushConstantData pushData;
             pushData.Params.Radius = ((Parameters *)mDenoiserParams)->Radius;

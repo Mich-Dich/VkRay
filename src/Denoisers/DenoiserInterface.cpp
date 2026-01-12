@@ -8,14 +8,14 @@ namespace vr::Denoise
 {
     DenoiserInterface::~DenoiserInterface()
     {
-        auto vulkanDevice = mDevice->GetDevice();
+        auto vulkanDevice = m_device->GetDevice();
 
         // lambda to destroy image views and samplers
         auto destroyImg = [this, vulkanDevice](Resource &resource)
         {
             vulkanDevice.destroyImageView(resource.AccessImage.View);
             vulkanDevice.destroySampler(resource.AccessImage.Sampler);
-            mDevice->DestroyImage(resource.AllocImage);
+            m_device->DestroyImage(resource.AllocImage);
         };
 
         for (auto &resource : mInputResources)
@@ -28,9 +28,9 @@ namespace vr::Denoise
     void DenoiserInterface::CreateResources(std::vector<Resource> &resources, vk::ImageUsageFlags inputUsage,
                                             vk::ImageUsageFlags outputUsage)
     {
-        auto vulkanDevice = mDevice->GetDevice();
+        auto vulkanDevice = m_device->GetDevice();
 
-        auto maxAnisotropy = mDevice->GetProperties().limits.maxSamplerAnisotropy;
+        auto maxAnisotropy = m_device->GetProperties().limits.maxSamplerAnisotropy;
 
         // ALl resources are images
         auto imageInfo = vk::ImageCreateInfo()
@@ -51,7 +51,7 @@ namespace vr::Denoise
                                                     ? inputUsage
                                                     : outputUsage); // set the usage depending on the type of resource
 
-            resource.AllocImage = mDevice->CreateImage(imageInfo, VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT);
+            resource.AllocImage = m_device->create_image(imageInfo, VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT);
 
             // Create Image View
             auto viewInfo =

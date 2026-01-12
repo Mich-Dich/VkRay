@@ -20,7 +20,7 @@ namespace vr {
 
     // CLASS IMPLEMENTATION ============================================================================================
 
-    Shader VkRayDevice::CreateShaderFromSPV(const std::vector<uint32_t>& spv) {
+    Shader vk_ray_device::CreateShaderFromSPV(const std::vector<uint32_t>& spv) {
 
         Shader outShader = {};
         if (spv.empty()) {
@@ -34,14 +34,14 @@ namespace vr {
     }
 
 
-    void VkRayDevice::DestroyShader(Shader &shader) { mDevice.destroyShaderModule(shader.Module); }
+    void vk_ray_device::DestroyShader(Shader &shader) { m_device.destroyShaderModule(shader.Module); }
 
 
-    vk::ShaderModule VkRayDevice::CreateShaderModule(const std::vector<uint32_t> &spvCode) {
+    vk::ShaderModule vk_ray_device::CreateShaderModule(const std::vector<uint32_t> &spvCode) {
 
         // create shader module
         auto shaderModuleCreateInfo = vk::ShaderModuleCreateInfo().setCodeSize(spvCode.size() * sizeof(uint32_t)).setPCode(spvCode.data());
-        auto shaderModule = mDevice.createShaderModule(shaderModuleCreateInfo);
+        auto shaderModule = m_device.createShaderModule(shaderModuleCreateInfo);
         return shaderModule;
     }
 

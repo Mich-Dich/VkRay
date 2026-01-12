@@ -14,7 +14,7 @@
 namespace vr
 {
 
-    class VkRayDevice {
+    class vk_ray_device {
     public:
 
         // @brief Creates a VkRay device to call all VkRay functions
@@ -24,9 +24,9 @@ namespace vr
         // @param allocator The VMA allocator that will be used to allocate memory, if it is nullptr then a new
         // allocator for VMA will be created, and destroyed when the device is destroyed. If an allocator is passed in
         // then it's not destroyed when the device is destroyed.
-        VkRayDevice(vk::Instance inst, vk::Device dev, vk::PhysicalDevice physDev, VmaAllocator allocator = nullptr);
+        vk_ray_device(vk::Instance inst, vk::Device dev, vk::PhysicalDevice physDev, VmaAllocator allocator = nullptr);
 
-        ~VkRayDevice();
+        ~vk_ray_device();
 
         // Setter Functions ===========================================================================================
 
@@ -36,42 +36,33 @@ namespace vr
         // allocate the memory so that means the the pool MUST have been created to support these types of allocations.
         // The allocations end up anywhere physically: Device or Host depending on the pool.
         // @warning If the pool is not created with the correct flags / memory types, then the allocations will fail.
-        void SetVmaPool(VmaPool pool) { mCurrentPool = pool; }
+        void SetVmaPool(VmaPool pool)                                                                       { m_current_pool = pool; }
 
         // Getter Functions ===========================================================================================
 
         // @brief Get the Vulkan device handle
-        vk::Device GetDevice() const { return mDevice; }
+        vk::Device GetDevice() const                                                                        { return m_device; }
 
         // @brief Get the Vulkan physical device handle
-        vk::PhysicalDevice GetPhysicalDevice() const { return mPhysicalDevice; }
+        vk::PhysicalDevice GetPhysicalDevice() const                                                        { return m_physical_device; }
 
         // @brief Get the Vulkan instance handle
-        vk::Instance GetInstance() const { return mInstance; }
+        vk::Instance GetInstance() const                                                                    { return m_instance; }
 
         // @brief Get the Vulkan dynamic loader
-        vk::detail::DispatchLoaderDynamic GetDynamicLoader() const { return mDynLoader; }
+        vk::detail::DispatchLoaderDynamic GetDynamicLoader() const                                          { return m_dyn_loader; }
 
         // @brief Get the Physical device properties
-        vk::PhysicalDeviceProperties GetProperties() const { return mDeviceProperties; }
+        vk::PhysicalDeviceProperties GetProperties() const                                                  { return m_device_properties; }
 
         // @brief Get the Ray Tracing properties of the physical device
-        vk::PhysicalDeviceRayTracingPipelinePropertiesKHR GetRayTracingProperties() const
-        {
-            return mRayTracingProperties;
-        }
+        vk::PhysicalDeviceRayTracingPipelinePropertiesKHR GetRayTracingProperties() const                   { return m_ray_tracing_properties; }
 
         // @brief Get the Acceleration Structure properties of the physical device
-        vk::PhysicalDeviceAccelerationStructurePropertiesKHR GetAccelerationStructureProperties() const
-        {
-            return mAccelProperties;
-        }
+        vk::PhysicalDeviceAccelerationStructurePropertiesKHR GetAccelerationStructureProperties() const     { return m_accel_properties; }
 
         // @brief Get the Descriptor Buffer properties of the physical device
-        vk::PhysicalDeviceDescriptorBufferPropertiesEXT GetDescriptorBufferProperties() const
-        {
-            return mDescriptorBufferProperties;
-        }
+        vk::PhysicalDeviceDescriptorBufferPropertiesEXT GetDescriptorBufferProperties() const               { return m_descriptor_buffer_properties; }
 
         // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         // @@@@@@@@@@@@@@@@@@@@@@@ Command Buffer Functions @@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -85,10 +76,10 @@ namespace vr
         // @param cmdBuf The command buffer that will be used to record the transition
         // @param srcStage The source pipeline stage, default is all commands
         // @param dstStage The destination pipeline stage, default is all commands
-        void TransitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
-                                   const vk::ImageSubresourceRange &range, vk::CommandBuffer cmdBuf,
-                                   vk::PipelineStageFlags srcStage = vk::PipelineStageFlagBits::eAllGraphics,
-                                   vk::PipelineStageFlags dstStage = vk::PipelineStageFlagBits::eAllCommands);
+        void transition_image_layout(vk::CommandBuffer cmdBuf, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
+            const vk::ImageSubresourceRange& range = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1),
+            vk::PipelineStageFlags srcStage = vk::PipelineStageFlagBits::eAllGraphics,
+            vk::PipelineStageFlags dstStage = vk::PipelineStageFlagBits::eAllCommands);
 
         // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         // @@@@@@@@@@@@@@@ Acceleration Structure Functions @@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -273,15 +264,14 @@ namespace vr
         // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         // @brief Returns the VMA allocator that is used to allocate the resources
-        VmaAllocator GetAllocator() const { return mVMAllocator; }
+        VmaAllocator GetAllocator() const                                                   { return m_vma_allocator; }
 
         // @brief Creates an Image
         // @param imgInfo The information that will be used to create the image
         // @param flags The VMA flags that will be used to allocate the image
         // @return The created image
         // @note Image views are not created in this function and must be created manually
-        [[nodiscard]] AllocatedImage CreateImage(const vk::ImageCreateInfo &imgInfo, VmaAllocationCreateFlags flags,
-                                                 VmaPool pool = nullptr);
+        [[nodiscard]] AllocatedImage create_image(const vk::ImageCreateInfo &imgInfo, VmaAllocationCreateFlags flags, VmaPool pool = nullptr);
 
         // @brief Creates a buffer
         // @param size The size of the buffer
@@ -295,15 +285,14 @@ namespace vr
         // 2. By default VmaAllocationCreateInfo::usage is VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, so the memory will be
         // allocated preferentially on the device. This can be overriden by specifying a VmaPool from where the memory
         // will be allocated.
-        [[nodiscard]] allocated_buffer CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags bufferUsage,
-                                                    VmaAllocationCreateFlags flags = 0, uint32_t alignment = 0,
-                                                    VmaPool pool = nullptr);
+        [[nodiscard]] allocated_buffer create_buffer(vk::DeviceSize size, vk::BufferUsageFlags bufferUsage, VmaAllocationCreateFlags flags = 0,
+            uint32_t alignment = 0,VmaPool pool = nullptr);
 
         // @brief Creates a buffer for storing the instances
         // @param instanceCount The number of instances that will be stored in the buffer (not byte size)
         // @return The created buffer
         // @note The buffer is created with the VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT flag, so it is
-        // host writable. If you want it in device local memory, you should create a buffer with CreateBuffer(...) and
+        // host writable. If you want it in device local memory, you should create a buffer with create_buffer(...) and
         // copy the instance data to the device local buffer.
         [[nodiscard]] allocated_buffer CreateInstanceBuffer(uint32_t instanceCount);
 
@@ -318,9 +307,8 @@ namespace vr
         // @param type The type of the descriptor buffer
         // @param setCount The number of descriptor sets that will be allocated for storage in the buffer, default is 1
         // @return The created descriptor buffer
-        [[nodiscard]] DescriptorBuffer CreateDescriptorBuffer(vk::DescriptorSetLayout layout,
-                                                              std::vector<DescriptorItem> &items,
-                                                              DescriptorBufferType type, uint32_t setCount = 1);
+        [[nodiscard]] DescriptorBuffer CreateDescriptorBuffer(vk::DescriptorSetLayout layout, std::vector<DescriptorItem> &items,
+            DescriptorBufferType type, uint32_t setCount = 1);
 
         // @brief Copies data from src to dst via vkCmdCopyBuffer
         // @param src The source buffer
@@ -480,9 +468,8 @@ namespace vr
         // DescriptorItem::pImageViews/pResources pointer
         // @warning There can be a segmentation fault if the pointers in the DescriptorItem are not valid or the
         // pointers are not pointing to an array of DescriptorItem::ArraySize/DynamicArraySize elements
-        void UpdateDescriptorBuffer(DescriptorBuffer &buffer, const std::vector<DescriptorItem> &items,
-                                    DescriptorBufferType type, uint32_t setIndexInBuffer = 0,
-                                    void *pMappedData = nullptr);
+        void UpdateDescriptorBuffer(DescriptorBuffer &buffer, const std::vector<DescriptorItem> &items, DescriptorBufferType type, uint32_t setIndexInBuffer = 0,
+            void *pMappedData = nullptr);
 
         // @brief Updates the descriptor buffer with the single descriptor item including all the elements in the array
         // @param buffer The descriptor buffer that will be updated
@@ -526,9 +513,8 @@ namespace vr
         // the start of the descriptor set that will be bound
         // @param cmdBuf The command buffer that will be used to record the bind
         // @param bindPoint The bind point of the descriptor set, default is eRayTracingKHR
-        void BindDescriptorSet(vk::PipelineLayout layout, uint32_t set, uint32_t bufferIndex, vk::DeviceSize offset,
-                               vk::CommandBuffer cmdBuf,
-                               vk::PipelineBindPoint bindPoint = vk::PipelineBindPoint::eRayTracingKHR);
+        void BindDescriptorSet(vk::PipelineLayout layout, uint32_t set, uint32_t bufferIndex, vk::DeviceSize offset, vk::CommandBuffer cmdBuf,
+            vk::PipelineBindPoint bindPoint = vk::PipelineBindPoint::eRayTracingKHR);
 
         // @brief Binds the descriptor sets to the command buffer
         // @param layout The pipeline layout that will be used to bind the descriptor set
@@ -542,10 +528,8 @@ namespace vr
         // @param cmdBuf The command buffer that will be used to record the bind
         // @param bindPoint The bind point of the descriptor set, default is eRayTracingKHR
         void BindDescriptorSet(vk::PipelineLayout layout, uint32_t set, std::vector<uint32_t> bufferIndex,
-                               std::vector<vk::DeviceSize> offset, // offset in the descriptor buffer, that is bound at
-                                                                   // bufferIndex, to the descriptor set
-                               vk::CommandBuffer cmdBuf,
-                               vk::PipelineBindPoint bindPoint = vk::PipelineBindPoint::eRayTracingKHR);
+            std::vector<vk::DeviceSize> offset, // offset in the descriptor buffer, that is bound at bufferIndex, to the descriptor set
+            vk::CommandBuffer cmdBuf, vk::PipelineBindPoint bindPoint = vk::PipelineBindPoint::eRayTracingKHR);
 
         // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         // @@@@@@@@@@@@@@@@@@ Shader Binding Table Functions @@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -557,8 +541,7 @@ namespace vr
         // @param groupCount The number of shader groups after firstGroup that will be used to get the handles
         // @return The opaque handles for the shader records in the SBT buffer
         // @note For VkRay's internal use, but can be used by the user doing custom SBT
-        [[nodiscard]] std::vector<uint8_t> GetHandlesForSBTBuffer(vk::Pipeline pipeline, uint32_t firstGroup,
-                                                                  uint32_t groupCount);
+        [[nodiscard]] std::vector<uint8_t> get_handles_for_sbtbuffer(vk::Pipeline pipeline, uint32_t firstGroup, uint32_t groupCount);
 
         // @brief Gets the opaque handles for the shader records in the SBT buffer
         // @param pipeline The pipeline that will be used to get the handles
@@ -568,7 +551,7 @@ namespace vr
         // @warning Segfault if the data pointer is not valid or the data size if out of bounds.
         // The data must be minimum groupCount * RayTracingProperties::shaderGroupHandleSize bytes.
         // @note For VkRay's internal use, but can be used by the user doing custom SBT
-        void GetHandlesForSBTBuffer(vk::Pipeline pipeline, uint32_t firstGroup, uint32_t groupCount, void *data);
+        void get_handles_for_sbtbuffer(vk::Pipeline pipeline, uint32_t firstGroup, uint32_t groupCount, void *data);
 
         // @brief Writes data to a shader record in the SBT buffer
         // @param sbtBuf The SBT buffer that will be written to
@@ -630,8 +613,7 @@ namespace vr
         // @param height The height of the image that will be used to dispatch the rays
         // @param depth The depth of the image that will be used to dispatch the rays, default is 1
         // @param cmdBuf The command buffer that will be used to record the dispatch
-        void DispatchRays(const vk::Pipeline rtPipeline, const SBTBuffer &buffer, uint32_t width, uint32_t height,
-                          uint32_t depth, vk::CommandBuffer cmdBuf);
+        void DispatchRays(const vk::Pipeline rtPipeline, const SBTBuffer &buffer, uint32_t width, uint32_t height, uint32_t depth, vk::CommandBuffer cmdBuf);
 
         // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         // @@@@@@@@@@@@@@@@@@@@@@@@@@@ Denoiser Functions @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -642,10 +624,9 @@ namespace vr
         // @brief Creates a denoiser of type T
         // @tparam T The type of the denoiser that will be created - Found in Denoisers namespace. will fail to compile
         // if T is not a denoiser
-        template <typename T,
-                  typename std::enable_if<std::is_base_of<Denoise::DenoiserInterface, T>::value, int>::type = 0>
-        vr::Denoiser CreateDenoiser(const Denoise::DenoiserSettings &settings)
-        {
+        template <typename T, typename std::enable_if<std::is_base_of<Denoise::DenoiserInterface, T>::value, int>::type = 0>
+        vr::Denoiser CreateDenoiser(const Denoise::DenoiserSettings &settings) {
+
             return std::make_unique<T>(this, settings);
         }
 
@@ -653,17 +634,17 @@ namespace vr
 
     private:
 
-        vk::detail::DispatchLoaderDynamic                       mDynLoader;
-        vk::Instance                                            mInstance;
-        vk::Device                                              mDevice;
-        vk::PhysicalDevice                                      mPhysicalDevice;
-        vk::PhysicalDeviceProperties                            mDeviceProperties;
-        vk::PhysicalDeviceRayTracingPipelinePropertiesKHR       mRayTracingProperties;
-        vk::PhysicalDeviceAccelerationStructurePropertiesKHR    mAccelProperties;
-        vk::PhysicalDeviceDescriptorBufferPropertiesEXT         mDescriptorBufferProperties;
-        VmaAllocator                                            mVMAllocator;
-        bool                                                    mUserSuppliedAllocator = false;
-        VmaPool                                                 mCurrentPool = nullptr;
+        vk::detail::DispatchLoaderDynamic                       m_dyn_loader;
+        vk::Instance                                            m_instance;
+        vk::Device                                              m_device;
+        vk::PhysicalDevice                                      m_physical_device;
+        vk::PhysicalDeviceProperties                            m_device_properties;
+        vk::PhysicalDeviceRayTracingPipelinePropertiesKHR       m_ray_tracing_properties;
+        vk::PhysicalDeviceAccelerationStructurePropertiesKHR    m_accel_properties;
+        vk::PhysicalDeviceDescriptorBufferPropertiesEXT         m_descriptor_buffer_properties;
+        VmaAllocator                                            m_vma_allocator;
+        bool                                                    m_user_supplied_allocator = false;
+        VmaPool                                                 m_current_pool = nullptr;
     };
 
 }
